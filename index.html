@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书签管理器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========== 基础重置 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ========== CSS变量 ========== */
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --bg-card-hover: rgba(40, 55, 85, 0.90);
+            --text-primary: #F8FAFC;
+            --text-secondary: rgba(160, 180, 210, 0.85);
+            --text-muted: #64748B;
+            --accent: #22C55E;
+            --accent-hover: #16A34A;
+            --border: rgba(80, 120, 180, 0.25);
+            --border-hover: rgba(80, 130, 200, 0.35);
+        }
+
+        /* ========== 页面基础 ========== */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* ========== 顶部栏 ========== */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        /* 搜索框 */
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* 操作按钮组 */
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        /* ========== 分类标签栏 ========== */
+        .tabs-wrapper {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+
+        .tabs {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 12px 0;
+        }
+
+        .tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 2px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .tab-count {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-add {
+            color: var(--text-muted);
+        }
+
+        .tab-add:hover {
+            color: var(--accent);
+        }
+
+        /* ========== 主内容区 ========== */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* 卡片网格 */
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        /* 书签卡片 */
+        .bookmark-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-3px);
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
+                        0 0 24px rgba(34, 197, 94, 0.08);
+        }
+
+        .bookmark-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .bookmark-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .bookmark-icon img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .bookmark-icon i {
+            font-size: 1.1rem;
+            color: var(--accent);
+        }
+
+        .bookmark-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bookmark-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bookmark-url {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bookmark-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .bookmark-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .bookmark-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent);
+        }
+
+        .bookmark-actions {
+            display: none;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .bookmark-card:hover .bookmark-actions {
+            display: flex;
+        }
+
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .action-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        /* ========== 空状态 ========== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        /* ========== 模态框 ========== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .search-box {
+                order: 3;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .bookmarks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部栏 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-bookmark"></i>
+                <span>书签管理器</span>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索书签...">
+            </div>
+            <div class="actions">
+                <button class="btn" id="importBtn" title="导入">
+                    <i class="fas fa-file-import"></i>
+                    <span>导入</span>
+                </button>
+                <button class="btn" id="exportBtn" title="导出">
+                    <i class="fas fa-file-export"></i>
+                    <span>导出</span>
+                </button>
+                <button class="btn btn-primary" id="addBookmarkBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>添加书签</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 分类标签栏 -->
+    <nav class="tabs-wrapper">
+        <div class="tabs" id="categoryTabs">
+            <!-- 分类标签由JS动态生成 -->
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main">
+        <div class="bookmarks-grid" id="bookmarksGrid">
+            <!-- 书签卡片由JS动态生成 -->
+        </div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <i class="fas fa-bookmark"></i>
+            <p>暂无书签</p>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i>
+                添加第一个书签
+            </button>
+        </div>
+    </main>
+
+    <!-- 添加/编辑书签模态框 -->
+    <div class="modal-overlay" id="bookmarkModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">添加书签</h2>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>URL *</label>
+                    <input type="url" id="bookmarkUrl" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>标题 *</label>
+                    <input type="text" id="bookmarkTitle" placeholder="网站标题">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="bookmarkDesc" placeholder="简短描述（可选）"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>分类</label>
+                    <select id="bookmarkCategory">
+                        <!-- 由JS动态生成 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>标签（逗号分隔）</label>
+                    <input type="text" id="bookmarkTags" placeholder="工具, 开发, 学习">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveBookmark()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加分类模态框 -->
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>添加分类</h2>
+                <button class="modal-close" onclick="closeCategoryModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>分类名称 *</label>
+                    <input type="text" id="categoryName" placeholder="例如：工作、学习、娱乐">
+                </div>
+                <div class="form-group">
+                    <label>图标</label>
+                    <select id="categoryIcon">
+                        <option value="fa-folder">📁 文件夹</option>
+                        <option value="fa-briefcase">💼 工作</option>
+                        <option value="fa-graduation-cap">🎓 学习</option>
+                        <option value="fa-gamepad">🎮 娱乐</option>
+                        <option value="fa-code">💻 开发</option>
+                        <option value="fa-palette">🎨 设计</option>
+                        <option value="fa-newspaper">📰 新闻</option>
+                        <option value="fa-shopping-cart">🛒 购物</option>
+                        <option value="fa-heart">❤️ 收藏</option>
+                        <option value="fa-star">⭐ 精选</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeCategoryModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCategory()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="importInput" accept=".json" style="display: none;">
+
+    <script src="app.js"></script>
+</body>
+</html>

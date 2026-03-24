@@ -340,12 +340,18 @@ function renderBookmarks() {
                     </button>
                 </div>
             </div>
-            ${bookmark.description ? `<div class="bookmark-desc">${highlightText(bookmark.description, searchQuery)}</div>` : ''}
-            ${bookmark.tags?.length ? `
-                <div class="bookmark-tags">
-                    ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
-                </div>
-            ` : ''}
+            <div class="bookmark-desc">${bookmark.description ? highlightText(bookmark.description, searchQuery) : ''}</div>
+            <div class="bookmark-footer">
+                ${bookmark.tags?.length ? `
+                    <div class="bookmark-tags">
+                        ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
+                    </div>
+                ` : '<div class="bookmark-tags"></div>'}
+                <button class="copy-btn" onclick="event.stopPropagation(); copyBookmarkUrl('${bookmark.url}', this)">
+                    <i class="fas fa-copy"></i>
+                    <span>复制</span>
+                </button>
+            </div>
         </div>
     `).join('');
 
@@ -614,6 +620,23 @@ function saveBookmark() {
     closeModal();
     renderCategories();
     renderBookmarks();
+}
+
+// 复制书签链接
+function copyBookmarkUrl(url, btn) {
+    navigator.clipboard.writeText(url).then(() => {
+        // 显示成功状态
+        btn.classList.add('copied');
+        btn.querySelector('i').className = 'fas fa-check';
+
+        // 1.5秒后恢复
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.querySelector('i').className = 'fas fa-copy';
+        }, 1500);
+    }).catch(err => {
+        console.error('复制失败:', err);
+    });
 }
 
 function deleteBookmark(id) {
@@ -1000,6 +1023,17 @@ function bindEvents() {
 
     // URL 输入框 - 自动获取标题
     document.getElementById('bookmarkUrl').addEventListener('input', onUrlInput);
+
+    // 回车键保存书签（描述框除外）
+    const enterSaveInputs = ['bookmarkUrl', 'bookmarkTitle', 'bookmarkCategory', 'bookmarkTags'];
+    enterSaveInputs.forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveBookmark();
+            }
+        });
+    });
 
     // 添加分类
     document.getElementById('addCategoryBtn').addEventListener('click', openCategoryModal);

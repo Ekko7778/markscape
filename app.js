@@ -1214,12 +1214,8 @@ function bindEvents() {
         }
     });
 
-    // 点击模态框外部关闭（仅添加模式，编辑模式不关闭）
-    document.getElementById('bookmarkModal').addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay') && !editingBookmarkId) {
-            closeModal();
-        }
-    });
+    // 点击书签模态框外部不关闭（统一行为）
+    // 用户明确要求编辑时不关闭，所以完全移除此功能
     document.getElementById('categoryModal').addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-overlay')) {
             closeCategoryModal();

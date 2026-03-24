@@ -64,10 +64,13 @@ let data = {
 // 当前状态
 let currentCategory = 'all';
 let editingBookmarkId = null;
+let searchTimeout = null;
 
 // ========== 初始化 ==========
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
+    loadTheme();
+    Toast.init();
     renderCategories();
     renderBookmarks();
     bindEvents();
@@ -89,26 +92,123 @@ function saveData() {
     localStorage.setItem('bookmarkManager', JSON.stringify(data));
 }
 
+// ========== 主题管理 ==========
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icon = document.querySelector('#themeToggle i');
+    if (icon) {
+        icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+}
+
+// ========== Toast 通知模块 ==========
+const Toast = {
+    container: null,
+
+    init() {
+        this.container = document.getElementById('toastContainer');
+        if (!this.container) {
+            console.error('Toast container not found');
+        }
+    },
+
+    show(message, type = 'success') {
+        if (!this.container) {
+            this.init();
+        }
+        if (!this.container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.success}"></i>
+            <span>${message}</span>
+        `;
+
+        this.container.appendChild(toast);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    },
+
+    success(message) {
+        this.show(message, 'success');
+    },
+
+    error(message) {
+        this.show(message, 'error');
+    },
+
+    warning(message) {
+        this.show(message, 'warning');
+    }
+};
+
+// 兼容旧调用方式
+function showToast(message, type = 'success') {
+    Toast.show(message, type);
+}
+
 // ========== 渲染分类 ==========
 function renderCategories() {
     const container = document.getElementById('categoryTabs');
     container.innerHTML = '';
 
     data.categories.forEach(cat => {
-                const count = cat.id === 'all'
-                    ? data.bookmarks.length
-                    : data.bookmarks.filter(b => b.categoryId === cat.id).length;
+        const count = cat.id === 'all'
+            ? data.bookmarks.length
+            : data.bookmarks.filter(b => b.categoryId === cat.id).length;
 
-                const tab = document.createElement('button');
-                tab.className = `tab ${currentCategory === cat.id ? 'active' : ''}`;
-                tab.innerHTML = `
-                    <i class="fas ${cat.icon}"></i>
-                    ${cat.name}
-                    <span class="tab-count">${count}</span>
-                `;
-                tab.onclick = () => selectCategory(cat.id);
-                container.appendChild(tab);
-            });
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tab-wrapper';
+
+        const tab = document.createElement('button');
+        tab.className = `tab ${currentCategory === cat.id ? 'active' : ''}`;
+        tab.innerHTML = `
+            <i class="fas ${cat.icon}"></i>
+            ${cat.name}
+            <span class="tab-count">${count}</span>
+        `;
+        tab.onclick = () => selectCategory(cat.id);
+        wrapper.appendChild(tab);
+
+        // 添加删除按钮（默认分类不可删除）
+        if (!cat.isDefault) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'tab-delete';
+            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                openDeleteCategoryModal(cat.id);
+            };
+            wrapper.appendChild(deleteBtn);
+        }
+
+        container.appendChild(wrapper);
+    });
 
     // 添加"新建分类"按钮
     const addBtn = document.createElement('button');
@@ -140,7 +240,7 @@ function updateCategorySelect() {
 function renderBookmarks() {
     const container = document.getElementById('bookmarksGrid');
     const emptyState = document.getElementById('emptyState');
-    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
     // 过滤书签
     let bookmarks = data.bookmarks;
@@ -171,14 +271,17 @@ function renderBookmarks() {
     emptyState.style.display = 'none';
 
     container.innerHTML = bookmarks.map(bookmark => `
-        <div class="bookmark-card" onclick="openBookmark('${bookmark.url}')">
+        <div class="bookmark-card"
+             draggable="true"
+             data-id="${bookmark.id}"
+             onclick="openBookmark('${bookmark.url}')">
             <div class="bookmark-header">
                 <div class="bookmark-icon">
                     ${getFavicon(bookmark)}
                 </div>
                 <div class="bookmark-info">
-                    <div class="bookmark-title">${escapeHtml(bookmark.title)}</div>
-                    <div class="bookmark-url">${escapeHtml(bookmark.url)}</div>
+                    <div class="bookmark-title">${highlightText(bookmark.title, searchQuery)}</div>
+                    <div class="bookmark-url">${highlightText(bookmark.url, searchQuery)}</div>
                 </div>
                 <div class="bookmark-actions">
                     <button class="action-btn" onclick="event.stopPropagation(); editBookmark('${bookmark.id}')" title="编辑">
@@ -189,14 +292,95 @@ function renderBookmarks() {
                     </button>
                 </div>
             </div>
-            ${bookmark.description ? `<div class="bookmark-desc">${escapeHtml(bookmark.description)}</div>` : ''}
+            ${bookmark.description ? `<div class="bookmark-desc">${highlightText(bookmark.description, searchQuery)}</div>` : ''}
             ${bookmark.tags?.length ? `
                 <div class="bookmark-tags">
-                    ${bookmark.tags.map(tag => `<span class="bookmark-tag">${escapeHtml(tag)}</span>`).join('')}
+                    ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
                 </div>
             ` : ''}
         </div>
     `).join('');
+
+    // 绑定拖拽事件
+    bindDragEvents();
+}
+
+// 高亮匹配文本
+function highlightText(text, query) {
+    const escaped = escapeHtml(text);
+    if (!query) return escaped;
+    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+    return escaped.replace(regex, '<mark>$1</mark>');
+}
+
+// 转义正则特殊字符
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ========== 拖拽排序 ==========
+let draggedElement = null;
+
+function bindDragEvents() {
+    const cards = document.querySelectorAll('.bookmark-card');
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragleave', handleDragLeave);
+        card.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.dataset.id);
+}
+
+function handleDragEnd() {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.bookmark-card').forEach(card => {
+        card.classList.remove('drag-over');
+    });
+    draggedElement = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave() {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+
+    if (this === draggedElement) return;
+
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const targetId = this.dataset.id;
+
+    // 找到两个书签在数组中的索引
+    const draggedIndex = data.bookmarks.findIndex(b => b.id === draggedId);
+    const targetIndex = data.bookmarks.findIndex(b => b.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // 交换位置
+    const [removed] = data.bookmarks.splice(draggedIndex, 1);
+    data.bookmarks.splice(targetIndex, 0, removed);
+
+    saveData();
+    renderBookmarks();
 }
 
 function getFavicon(bookmark) {
@@ -250,7 +434,7 @@ function saveBookmark() {
     const tagsStr = document.getElementById('bookmarkTags').value;
 
     if (!url || !title) {
-        alert('请填写URL和标题');
+        showToast('请填写URL和标题', 'warning');
         return;
     }
 
@@ -258,7 +442,7 @@ function saveBookmark() {
     try {
         new URL(url);
     } catch {
-        alert('请输入有效的URL');
+        showToast('请输入有效的URL', 'error');
         return;
     }
 
@@ -277,6 +461,7 @@ function saveBookmark() {
                 tags
             };
         }
+        showToast('书签已更新', 'success');
     } else {
         // 添加模式
         const newBookmark = {
@@ -289,6 +474,7 @@ function saveBookmark() {
             favicon: ''
         };
         data.bookmarks.unshift(newBookmark);
+        showToast('书签已添加', 'success');
     }
 
     saveData();
@@ -304,6 +490,7 @@ function deleteBookmark(id) {
     saveData();
     renderCategories();
     renderBookmarks();
+    showToast('书签已删除', 'success');
 }
 
 function openBookmark(url) {
@@ -331,7 +518,7 @@ function saveCategory() {
     const icon = document.getElementById('categoryIcon').value;
 
     if (!name) {
-        alert('请输入分类名称');
+        showToast('请输入分类名称', 'warning');
         return;
     }
 
@@ -345,6 +532,60 @@ function saveCategory() {
     saveData();
     closeCategoryModal();
     renderCategories();
+    showToast('分类已添加', 'success');
+}
+
+// 删除分类相关
+let deletingCategoryId = null;
+
+function openDeleteCategoryModal(categoryId) {
+    const category = data.categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    deletingCategoryId = categoryId;
+    const count = data.bookmarks.filter(b => b.categoryId === categoryId).length;
+
+    document.getElementById('deleteCategoryName').textContent = category.name;
+    document.getElementById('deleteCategoryCount').textContent = count;
+    document.getElementById('deleteCategoryModal').classList.add('active');
+}
+
+function closeDeleteCategoryModal() {
+    document.getElementById('deleteCategoryModal').classList.remove('active');
+    deletingCategoryId = null;
+}
+
+function confirmDeleteCategory(keepBookmarks) {
+    if (!deletingCategoryId) return;
+
+    const categoryName = data.categories.find(c => c.id === deletingCategoryId)?.name || '';
+
+    if (!keepBookmarks) {
+        // 一并删除书签
+        data.bookmarks = data.bookmarks.filter(b => b.categoryId !== deletingCategoryId);
+        showToast(`分类"${categoryName}"及相关书签已删除`, 'success');
+    } else {
+        // 保留书签，移除分类关联
+        data.bookmarks.forEach(b => {
+            if (b.categoryId === deletingCategoryId) {
+                b.categoryId = '';
+            }
+        });
+        showToast(`分类"${categoryName}"已删除，书签已保留`, 'success');
+    }
+
+    // 删除分类
+    data.categories = data.categories.filter(c => c.id !== deletingCategoryId);
+
+    // 如果删除的是当前分类，切换到"全部"
+    if (currentCategory === deletingCategoryId) {
+        currentCategory = 'all';
+    }
+
+    saveData();
+    closeDeleteCategoryModal();
+    renderCategories();
+    renderBookmarks();
 }
 
 // ========== 导入导出 ==========
@@ -359,41 +600,107 @@ function exportData() {
     a.click();
 
     URL.revokeObjectURL(url);
+    showToast('数据导出成功', 'success');
 }
 
 function importData(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-        try {
-            const imported = JSON.parse(e.target.result);
+        const content = e.target.result;
 
-            // 验证数据结构
-            if (!imported.categories || !imported.bookmarks) {
-                alert('无效的书签文件格式');
-                return;
-            }
+        // 判断文件类型
+        if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+            // 浏览器书签 HTML 格式
+            importBrowserBookmarks(content);
+        } else {
+            // JSON 格式
+            try {
+                const imported = JSON.parse(content);
 
-            if (confirm('导入将覆盖现有数据，确定继续吗？')) {
-                data = imported;
-                saveData();
-                currentCategory = 'all';
-                renderCategories();
-                renderBookmarks();
+                // 验证数据结构
+                if (!imported.categories || !imported.bookmarks) {
+                    showToast('无效的书签文件格式', 'error');
+                    return;
+                }
+
+                if (confirm('导入将覆盖现有数据，确定继续吗？')) {
+                    data = imported;
+                    saveData();
+                    currentCategory = 'all';
+                    renderCategories();
+                    renderBookmarks();
+                    showToast('数据导入成功', 'success');
+                }
+            } catch (err) {
+                showToast('文件解析失败', 'error');
             }
-        } catch (err) {
-            alert('文件解析失败: ' + err.message);
         }
     };
     reader.readAsText(file);
 }
 
+// 导入浏览器书签 HTML
+function importBrowserBookmarks(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const links = doc.querySelectorAll('a');
+
+    const importedBookmarks = [];
+    let importedCount = 0;
+
+    links.forEach(link => {
+        const url = link.getAttribute('href');
+        const title = link.textContent?.trim();
+        const icon = link.getAttribute('icon');
+
+        if (url && title && url.startsWith('http')) {
+            importedBookmarks.push({
+                id: Date.now().toString() + '_' + importedCount,
+                url,
+                title,
+                description: '',
+                categoryId: '',
+                tags: [],
+                favicon: icon || ''
+            });
+            importedCount++;
+        }
+    });
+
+    if (importedCount === 0) {
+        showToast('未找到有效书签', 'warning');
+        return;
+    }
+
+    if (confirm(`发现 ${importedCount} 个书签，是否合并到现有数据？\n（选择"取消"将覆盖现有数据）`)) {
+        // 合并模式
+        data.bookmarks = [...importedBookmarks, ...data.bookmarks];
+        showToast(`成功导入 ${importedCount} 个书签`, 'success');
+    } else {
+        // 覆盖模式
+        data.bookmarks = importedBookmarks;
+        showToast(`成功导入 ${importedCount} 个书签（已覆盖）`, 'success');
+    }
+
+    saveData();
+    currentCategory = 'all';
+    renderCategories();
+    renderBookmarks();
+}
+
 // ========== 事件绑定 ==========
 function bindEvents() {
-    // 搜索
-    document.getElementById('searchInput').addEventListener('input', renderBookmarks);
+    // 搜索（带防抖）
+    document.getElementById('searchInput').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(renderBookmarks, 300);
+    });
 
     // 添加书签按钮
     document.getElementById('addBookmarkBtn').addEventListener('click', openAddModal);
+
+    // 主题切换
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
     // 导入导出
     document.getElementById('exportBtn').addEventListener('click', exportData);
@@ -407,9 +714,9 @@ function bindEvents() {
         }
     });
 
-    // 点击模态框外部关闭
+    // 点击模态框外部关闭（仅添加模式，编辑模式不关闭）
     document.getElementById('bookmarkModal').addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay')) {
+        if (e.target.classList.contains('modal-overlay') && !editingBookmarkId) {
             closeModal();
         }
     });
@@ -419,11 +726,25 @@ function bindEvents() {
         }
     });
 
-    // ESC 关闭模态框
+    // ESC 关闭模态框 + 快捷键
     document.addEventListener('keydown', (e) => {
+        // ESC 关闭所有模态框
         if (e.key === 'Escape') {
             closeModal();
             closeCategoryModal();
+            closeDeleteCategoryModal();
+        }
+
+        // Ctrl/Cmd + K 聚焦搜索框
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        }
+
+        // Ctrl/Cmd + N 添加书签
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            openAddModal();
         }
     });
 

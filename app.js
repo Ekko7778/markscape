@@ -437,16 +437,114 @@ function handleDrop(e) {
     renderBookmarks();
 }
 
+// ========== 图标缓存系统 ==========
+const FAVICON_CACHE_KEY = 'faviconCache';
+
+// 获取图标缓存
+function getFaviconCache() {
+    try {
+        const cache = localStorage.getItem(FAVICON_CACHE_KEY);
+        return cache ? JSON.parse(cache) : {};
+    } catch {
+        return {};
+    }
+}
+
+// 保存图标缓存
+function saveFaviconCache(cache) {
+    try {
+        localStorage.setItem(FAVICON_CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+        console.error('保存图标缓存失败:', e);
+    }
+}
+
+// 图标服务列表
+function getFaviconServices(hostname) {
+    return [
+        `https://${hostname}/favicon.ico`,
+        `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`,
+        `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+        `https://icon.horse/icon/${hostname}`
+    ];
+}
+
 function getFavicon(bookmark) {
+    // 如果书签已有 favicon，直接使用
     if (bookmark.favicon) {
         return `<img src="${bookmark.favicon}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <i class="fas fa-link" style="display:none"></i>`;
     }
-    // 使用 Google Favicon 服务
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(bookmark.url).hostname}&sz=32`;
-    return `<img src="${faviconUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+
+    const hostname = new URL(bookmark.url).hostname;
+    const faviconServices = getFaviconServices(hostname);
+
+    // 检查缓存
+    const cache = getFaviconCache();
+    const cachedIndex = cache[hostname];
+
+    // 如果缓存中有记录，直接使用对应的服务
+    const startIndex = typeof cachedIndex === 'number' ? cachedIndex : 0;
+
+    return `<img src="${faviconServices[startIndex]}" alt=""
+                onerror="window.tryNextFavicon(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
+                onload="window.onFaviconLoad(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
+                data-favicon-index="${startIndex}">
             <i class="fas fa-link" style="display:none;color: var(--accent)"></i>`;
 }
+
+// 超时时间：1.5秒
+const FAVICON_TIMEOUT = 1500;
+
+// 图标加载成功 - 保存到缓存和书签数据
+window.onFaviconLoad = function(img, currentIndex, hostname, bookmarkId) {
+    // 清除定时器
+    if (img.faviconTimer) {
+        clearTimeout(img.faviconTimer);
+        img.faviconTimer = null;
+    }
+
+    // 保存到缓存
+    const cache = getFaviconCache();
+    cache[hostname] = currentIndex;
+    saveFaviconCache(cache);
+
+    // 保存图标URL 到书签数据
+    const faviconServices = getFaviconServices(hostname);
+    const bookmark = data.bookmarks.find(b => b.id === bookmarkId);
+    if (bookmark && !bookmark.favicon) {
+        bookmark.favicon = faviconServices[currentIndex];
+        saveData();
+    }
+};
+
+// 全局图标降级函数
+window.tryNextFavicon = function(img, currentIndex, hostname, bookmarkId) {
+    // 清除之前的定时器
+    if (img.faviconTimer) {
+        clearTimeout(img.faviconTimer);
+    }
+
+    const faviconServices = getFaviconServices(hostname);
+
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < faviconServices.length) {
+        img.src = faviconServices[nextIndex];
+        img.dataset.faviconIndex = nextIndex;
+        // 更新 onload 事件，传递 bookmarkId
+        img.onload = function() {
+            window.onFaviconLoad(img, nextIndex, hostname, bookmarkId);
+        };
+        // 设置超时
+        img.faviconTimer = setTimeout(() => {
+            window.tryNextFavicon(img, nextIndex, hostname, bookmarkId);
+        }, FAVICON_TIMEOUT);
+    } else {
+        // 所有服务都失败，显示默认图标
+        img.style.display = 'none';
+        img.nextElementSibling.style.display = 'flex';
+    }
+};
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -1092,7 +1190,14 @@ function bindEvents() {
 
     // URL输入框自动获取标题
     document.getElementById('bookmarkUrl').addEventListener('blur', async function() {
-        const url = this.value.trim();
+        let url = this.value.trim();
+
+        // 自动补全 https:// 前缀
+        if (url && !/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+            this.value = url;
+        }
+
         const titleInput = document.getElementById('bookmarkTitle');
 
         if (url && !titleInput.value) {

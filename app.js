@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
     loadTheme();
     Toast.init();
+    initScrollButtons();
     renderCategories();
     renderBookmarks();
     bindEvents();
@@ -195,10 +196,10 @@ function renderCategories() {
         tab.onclick = () => selectCategory(cat.id);
         wrapper.appendChild(tab);
 
+        // 非默认分类添加编辑和删除按钮
         if (!cat.isDefault) {
-            // 编辑按钮
             const editBtn = document.createElement('button');
-            editBtn.className = 'tab-edit';
+            editBtn.className = 'tab-action tab-edit';
             editBtn.innerHTML = '<i class="fas fa-pen"></i>';
             editBtn.title = '编辑分类';
             editBtn.onclick = (e) => {
@@ -207,10 +208,10 @@ function renderCategories() {
             };
             wrapper.appendChild(editBtn);
 
-            // 删除按钮
             const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'tab-delete';
+            deleteBtn.className = 'tab-action tab-delete';
             deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            deleteBtn.title = '删除分类';
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
                 openDeleteCategoryModal(cat.id);
@@ -222,6 +223,44 @@ function renderCategories() {
     });
 
     updateCategorySelect();
+    updateScrollButtons();
+}
+
+// ========== 分类滚动按钮 ==========
+let scrollPosition = 0;
+
+function initScrollButtons() {
+    const leftBtn = document.getElementById('scrollLeftBtn');
+    const rightBtn = document.getElementById('scrollRightBtn');
+
+    leftBtn.addEventListener('click', () => scrollTabs(-200));
+    rightBtn.addEventListener('click', () => scrollTabs(200));
+
+    // 监听窗口大小变化
+    window.addEventListener('resize', updateScrollButtons);
+}
+
+function scrollTabs(delta) {
+    const tabs = document.getElementById('categoryTabs');
+    const wrapper = tabs.parentElement;
+    const maxScroll = tabs.scrollWidth - wrapper.clientWidth;
+    scrollPosition = Math.max(0, Math.min(scrollPosition + delta, maxScroll));
+    tabs.style.transform = `translateX(-${scrollPosition}px)`;
+    updateScrollButtons();
+}
+
+function updateScrollButtons() {
+    const tabs = document.getElementById('categoryTabs');
+    const wrapper = tabs.parentElement;
+    const leftBtn = document.getElementById('scrollLeftBtn');
+    const rightBtn = document.getElementById('scrollRightBtn');
+
+    const hasOverflow = tabs.scrollWidth > wrapper.clientWidth;
+    const canScrollLeft = scrollPosition > 0;
+    const canScrollRight = scrollPosition < tabs.scrollWidth - wrapper.clientWidth;
+
+    leftBtn.classList.toggle('visible', hasOverflow && canScrollLeft);
+    rightBtn.classList.toggle('visible', hasOverflow && canScrollRight);
 }
 
 function selectCategory(categoryId) {
@@ -489,10 +528,28 @@ function deleteBookmark(id) {
     if (!confirm('确定要删除这个书签吗？')) return;
 
     data.bookmarks = data.bookmarks.filter(b => b.id !== id);
+    cleanupEmptyCategories();
     saveData();
     renderCategories();
     renderBookmarks();
     showToast('书签已删除', 'success');
+}
+
+// 清理空分类（没有书签的非默认分类）
+function cleanupEmptyCategories() {
+    const categoryIds = new Set(data.bookmarks.map(b => b.categoryId));
+    const beforeCount = data.categories.length;
+
+    data.categories = data.categories.filter(cat =>
+        cat.isDefault || categoryIds.has(cat.id)
+    );
+
+    // 如果当前分类被删除，切换到"全部"
+    if (!data.categories.find(c => c.id === currentCategory)) {
+        currentCategory = 'all';
+    }
+
+    return data.categories.length < beforeCount; // 返回是否有分类被删除
 }
 
 function openBookmark(url) {
@@ -572,12 +629,33 @@ function openDeleteCategoryModal(categoryId) {
     const category = data.categories.find(c => c.id === categoryId);
     if (!category) return;
 
-    deletingCategoryId = categoryId;
     const count = data.bookmarks.filter(b => b.categoryId === categoryId).length;
 
+    // 如果分类下没有书签，直接删除不需要确认
+    if (count === 0) {
+        deleteCategoryDirectly(categoryId);
+        return;
+    }
+
+    deletingCategoryId = categoryId;
     document.getElementById('deleteCategoryName').textContent = category.name;
     document.getElementById('deleteCategoryCount').textContent = count;
     document.getElementById('deleteCategoryModal').classList.add('active');
+}
+
+// 直接删除空分类（无需确认）
+function deleteCategoryDirectly(categoryId) {
+    const categoryName = data.categories.find(c => c.id === categoryId)?.name || '';
+    data.categories = data.categories.filter(c => c.id !== categoryId);
+
+    if (currentCategory === categoryId) {
+        currentCategory = 'all';
+    }
+
+    saveData();
+    renderCategories();
+    renderBookmarks();
+    showToast(`分类"${categoryName}"已删除`, 'success');
 }
 
 function closeDeleteCategoryModal() {
@@ -627,9 +705,14 @@ function clearAllBookmarks() {
 
     if (confirm(`确定要删除全部 ${data.bookmarks.length} 个书签吗？\n此操作不可撤销！`)) {
         data.bookmarks = [];
+        // 清理所有非默认分类（因为没有书签了）
+        const removedCount = data.categories.filter(c => !c.isDefault).length;
+        data.categories = data.categories.filter(c => c.isDefault);
+        currentCategory = 'all';
         saveData();
+        renderCategories();
         renderBookmarks();
-        showToast('已清空所有书签', 'success');
+        showToast(`已清空所有书签，删除了 ${removedCount} 个空分类`, 'success');
     }
 }
 

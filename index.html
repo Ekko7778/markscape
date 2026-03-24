@@ -174,6 +174,30 @@
             gap: 8px;
         }
 
+        /* 按钮分组 */
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 数据操作组前加分隔线 */
+        .action-group.data-ops {
+            padding-left: 12px;
+            margin-left: 8px;
+            border-left: 1px solid var(--border);
+        }
+
+        /* 次要操作组前加分隔线 */
+        .secondary-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-left: 12px;
+            margin-left: 8px;
+            border-left: 1px solid var(--border);
+        }
+
         .btn {
             padding: 8px 14px;
             border-radius: 8px;
@@ -187,6 +211,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
+            height: 36px;
         }
 
         .btn:hover {
@@ -213,16 +238,49 @@
             justify-content: center;
         }
 
-        #clearAllBtn:hover {
+        .btn-icon:hover {
+            background: var(--bg-card);
+            border-color: var(--border-hover);
+        }
+
+        /* 危险操作图标按钮 */
+        .btn-danger-icon:hover {
             background: rgba(239, 68, 68, 0.1);
             border-color: #EF4444;
             color: #EF4444;
         }
 
+        /* 添加分类按钮 */
         #addCategoryBtn:hover {
             background: rgba(34, 197, 94, 0.1);
             border-color: var(--accent);
             color: var(--accent);
+        }
+
+        /* 主题切换按钮 - 最右边 */
+        .theme-toggle {
+            position: fixed;
+            top: 12px;
+            right: 20px;
+            z-index: 101;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            transform: rotate(15deg);
         }
 
         /* 标签栏 */
@@ -230,19 +288,36 @@
             padding: 8px 20px 12px;
             max-width: 1200px;
             margin: 0 auto;
-        }
-
-        .tabs {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 4px;
-            overflow-x: auto;
-            padding-top: 8px;
-            margin-top: -8px;
         }
 
-        .tabs::-webkit-scrollbar {
-            height: 0;
+        .tabs-scroll-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: all 0.2s;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .tabs-scroll-btn.visible {
+            opacity: 1;
+        }
+
+        .tabs-scroll-btn:hover {
+            background: var(--accent);
+            color: #fff;
         }
 
         .tab-wrapper {
@@ -292,61 +367,121 @@
             background: rgba(255,255,255,0.2);
         }
 
-        .tab-delete {
+        /* 分类操作按钮（悬浮在右上角） */
+        .tab-action {
             position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 18px;
-            height: 18px;
+            top: -8px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: none;
-            background: #EF4444;
-            color: #fff;
-            font-size: 0.55rem;
+            font-size: 0.6rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             transition: all 0.2s;
-            z-index: 20;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 101;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
-        .tab-edit {
-            position: absolute;
-            top: -6px;
-            right: 14px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: none;
-            background: #3B82F6;
-            color: #fff;
-            font-size: 0.55rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.2s;
-            z-index: 20;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .tab-wrapper:hover .tab-delete,
-        .tab-wrapper:hover .tab-edit {
+        .tab-wrapper:hover .tab-action {
             opacity: 1;
         }
 
+        .tab-edit {
+            right: 18px;
+            background: var(--accent);
+            color: #fff;
+        }
+
         .tab-edit:hover {
-            background: #2563EB;
-            transform: scale(1.1);
+            background: var(--accent-hover);
+            transform: scale(1.15);
+        }
+
+        .tab-delete {
+            right: -8px;
+            background: #EF4444;
+            color: #fff;
         }
 
         .tab-delete:hover {
             background: #DC2626;
-            transform: scale(1.1);
+            transform: scale(1.15);
+        }
+
+        .tabs-scroll-btn.left {
+            margin-right: 4px;
+        }
+
+        .tabs-scroll-btn.right {
+            margin-left: 4px;
+        }
+
+        .tabs-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tabs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding-top: 8px;
+            margin-top: -8px;
+            padding-bottom: 8px;
+            margin-bottom: -8px;
+            transition: transform 0.3s ease;
+        }
+
+        .tab-wrapper {
+            position: relative;
+            z-index: 10;
+            margin-top: 8px;
+        }
+
+        .tab {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .tab i {
+            font-size: 0.8rem;
+        }
+
+        .tab-count {
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab.active .tab-count {
+            background: rgba(255,255,255,0.2);
         }
 
         /* ========== 主内容区 ========== */
@@ -758,31 +893,47 @@
                 <input type="text" id="searchInput" placeholder="搜索书签...">
             </div>
             <div class="actions">
-                <button class="btn" id="importBtn" title="导入">
-                    <i class="fas fa-file-import"></i>
-                    <span>导入</span>
-                </button>
-                <button class="btn" id="exportBtn" title="导出">
-                    <i class="fas fa-file-export"></i>
-                    <span>导出</span>
-                </button>
+                <!-- 主要操作 -->
                 <button class="btn btn-primary" id="addBookmarkBtn">
                     <i class="fas fa-plus"></i>
-                    <span>添加</span>
+                    <span>添加书签</span>
                 </button>
-                <button class="btn btn-icon" id="addCategoryBtn" title="添加分类">
+                <button class="btn" id="addCategoryBtn">
                     <i class="fas fa-folder-plus"></i>
+                    <span>新建分类</span>
                 </button>
-                <button class="btn btn-icon" id="clearAllBtn" title="清空所有书签">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-                <button class="btn btn-icon" id="themeToggle" title="切换主题">
-                    <i class="fas fa-moon"></i>
-                </button>
+                <!-- 数据操作 -->
+                <div class="action-group data-ops">
+                    <button class="btn" id="importBtn">
+                        <i class="fas fa-file-import"></i>
+                        <span>导入</span>
+                    </button>
+                    <button class="btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i>
+                        <span>导出</span>
+                    </button>
+                </div>
+                <!-- 次要操作（分隔线后） -->
+                <div class="action-group secondary-actions">
+                    <button class="btn btn-icon btn-danger-icon" id="clearAllBtn" title="清空所有书签">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
+            <button class="btn btn-icon theme-toggle" id="themeToggle" title="切换主题">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
         <div class="tabs-container">
-            <div class="tabs" id="categoryTabs"></div>
+            <button class="tabs-scroll-btn left" id="scrollLeftBtn" title="向左滚动">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="tabs-wrapper">
+                <div class="tabs" id="categoryTabs"></div>
+            </div>
+            <button class="tabs-scroll-btn right" id="scrollRightBtn" title="向右滚动">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </header>
 

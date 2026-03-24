@@ -357,6 +357,9 @@ function renderBookmarks() {
 
     // 绑定拖拽事件
     bindDragEvents();
+
+    // 为图标设置超时定时器
+    initFaviconTimeouts();
 }
 
 // 高亮匹配文本
@@ -489,7 +492,9 @@ function getFavicon(bookmark) {
     return `<img src="${faviconServices[startIndex]}" alt=""
                 onerror="window.tryNextFavicon(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
                 onload="window.onFaviconLoad(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
-                data-favicon-index="${startIndex}">
+                data-favicon-index="${startIndex}"
+                data-favicon-hostname="${hostname}"
+                data-favicon-bookmark-id="${bookmark.id}">
             <i class="fas fa-link" style="display:none;color: var(--accent)"></i>`;
 }
 
@@ -545,6 +550,24 @@ window.tryNextFavicon = function(img, currentIndex, hostname, bookmarkId) {
         img.nextElementSibling.style.display = 'flex';
     }
 };
+
+// 初始化所有图标的超时定时器
+function initFaviconTimeouts() {
+    const faviconImgs = document.querySelectorAll('.bookmark-icon img[data-favicon-index]');
+    faviconImgs.forEach(img => {
+        // 如果已经有定时器，跳过
+        if (img.faviconTimer) return;
+
+        const currentIndex = parseInt(img.dataset.faviconIndex, 10);
+        const hostname = img.dataset.faviconHostname;
+        const bookmarkId = img.dataset.faviconBookmarkId;
+
+        // 设置超时定时器
+        img.faviconTimer = setTimeout(() => {
+            window.tryNextFavicon(img, currentIndex, hostname, bookmarkId);
+        }, FAVICON_TIMEOUT);
+    });
+}
 
 function escapeHtml(text) {
     const div = document.createElement('div');

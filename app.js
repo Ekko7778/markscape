@@ -195,7 +195,6 @@ function renderCategories() {
         tab.onclick = () => selectCategory(cat.id);
         wrapper.appendChild(tab);
 
-        // 添加删除按钮（默认分类不可删除）
         if (!cat.isDefault) {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'tab-delete';
@@ -210,7 +209,6 @@ function renderCategories() {
         container.appendChild(wrapper);
     });
 
-    // 添加"新建分类"按钮
     const addBtn = document.createElement('button');
     addBtn.className = 'tab tab-add';
     addBtn.innerHTML = '<i class="fas fa-plus"></i>';
@@ -218,7 +216,6 @@ function renderCategories() {
     addBtn.onclick = openCategoryModal;
     container.appendChild(addBtn);
 
-    // 更新书签表单中的分类选择
     updateCategorySelect();
 }
 

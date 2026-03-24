@@ -57,272 +57,221 @@
             color: var(--text-primary);
         }
 
-        /* ========== 固定头部模块 - Glassmorphism ========== */
-        .fixed-header {
+        /* ========== 导航栏 ========== */
+        .header {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-lg);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
         }
 
-        .header {
-            padding: 16px 24px;
-        }
-
-        .header-content {
-            max-width: 1400px;
+        /* 顶部栏 */
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 20px;
+            max-width: 1200px;
             margin: 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 20px;
         }
 
-        /* Logo */
         .logo {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 10px;
-            letter-spacing: -0.02em;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
         }
 
         .logo i {
             color: var(--accent);
-            font-size: 1.35rem;
         }
 
-        /* 搜索框 */
         .search-box {
-            flex: 1;
-            max-width: 420px;
+            flex: 0 0 220px;
             position: relative;
         }
 
         .search-box input {
             width: 100%;
-            padding: 12px 16px 12px 44px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             color: var(--text-primary);
             font-size: 0.9rem;
             outline: none;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
         }
 
         .search-box input::placeholder {
             color: var(--text-muted);
         }
 
-        .search-box input:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
-        }
-
         .search-box i {
             position: absolute;
-            left: 16px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        /* 操作按钮组 */
         .actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
             color: var(--text-primary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 6px;
+            transition: all 0.2s;
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
             border-color: var(--border-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
         }
 
         .btn-primary {
             background: var(--accent);
             border-color: var(--accent);
             color: #fff;
-            font-weight: 600;
         }
 
         .btn-primary:hover {
             background: var(--accent-hover);
-            border-color: var(--accent-hover);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
         }
 
-        /* 主题切换按钮 */
-        .theme-toggle {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            cursor: pointer;
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--border-hover);
-            transform: rotate(15deg);
-        }
-
-        .theme-toggle i {
-            font-size: 1.1rem;
-            transition: transform 0.3s ease;
-        }
-
-        /* ========== 分类标签栏 ========== */
-        .tabs-wrapper {
-            padding: 0 24px;
-            background: rgba(0, 0, 0, 0.1);
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        /* 标签栏 */
+        .tabs-container {
+            padding: 8px 20px 12px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .tabs {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             overflow-x: auto;
-            padding: 10px 0;
+            padding-top: 8px;
+            margin-top: -8px;
         }
 
         .tabs::-webkit-scrollbar {
-            height: 3px;
-        }
-
-        .tabs::-webkit-scrollbar-thumb {
-            background: var(--text-muted);
-            border-radius: 3px;
+            height: 0;
         }
 
         .tab-wrapper {
             position: relative;
-            display: inline-flex;
+            z-index: 10;
+            margin-top: 8px;
         }
 
         .tab {
-            padding: 10px 18px;
-            border-radius: 10px;
-            background: transparent;
+            padding: 6px 14px;
+            border-radius: 6px;
             border: none;
+            background: transparent;
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 6px;
+            transition: all 0.2s;
         }
 
         .tab:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--bg-primary);
             color: var(--text-primary);
         }
 
         .tab.active {
             background: var(--accent);
             color: #fff;
-            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
         }
 
         .tab i {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
 
         .tab-count {
             font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
         }
 
         .tab.active .tab-count {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255,255,255,0.2);
         }
 
         .tab-add {
             color: var(--text-muted);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px dashed var(--glass-border);
+            border: 1px dashed var(--border);
         }
 
         .tab-add:hover {
             color: var(--accent);
             border-color: var(--accent);
-            background: rgba(34, 197, 94, 0.1);
         }
 
-        /* 分类删除按钮 */
         .tab-delete {
             position: absolute;
             top: -6px;
             right: -6px;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            border: 2px solid var(--bg-primary);
+            border: none;
             background: #EF4444;
             color: #fff;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transform: scale(0.7);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 10;
+            transition: all 0.2s;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .tab-wrapper:hover .tab-delete {
             opacity: 1;
-            transform: scale(1);
         }
 
         .tab-delete:hover {
             background: #DC2626;
-            transform: scale(1.15);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+            transform: scale(1.1);
         }
 
         /* ========== 主内容区 ========== */
@@ -604,7 +553,7 @@
         /* ========== Toast 通知 ========== */
         .toast-container {
             position: fixed;
-            bottom: 24px;
+            top: 80px;
             right: 24px;
             z-index: 2000;
             display: flex;
@@ -653,6 +602,7 @@
 
         .toast.hide {
             animation: toastOut 0.3s ease forwards;
+            margin-bottom: -48px;
         }
 
         @keyframes toastIn {
@@ -670,10 +620,12 @@
             from {
                 opacity: 1;
                 transform: translateX(0);
+                margin-bottom: 0;
             }
             to {
                 opacity: 0;
                 transform: translateX(100%);
+                margin-bottom: -48px;
             }
         }
 
@@ -719,46 +671,39 @@
     </style>
 </head>
 <body>
-    <!-- 固定头部模块 -->
-    <div class="fixed-header">
-        <!-- 顶部栏 -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-bookmark"></i>
-                    <span>书签管理器</span>
-                </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="搜索书签...">
-                </div>
-                <div class="actions">
-                    <button class="btn" id="importBtn" title="导入">
-                        <i class="fas fa-file-import"></i>
-                        <span>导入</span>
-                    </button>
-                    <button class="btn" id="exportBtn" title="导出">
-                        <i class="fas fa-file-export"></i>
-                        <span>导出</span>
-                    </button>
-                    <button class="btn btn-primary" id="addBookmarkBtn">
-                        <i class="fas fa-plus"></i>
-                        <span>添加书签</span>
-                    </button>
-                    <button class="theme-toggle" id="themeToggle" title="切换主题">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
+    <!-- 导航栏 -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <i class="fas fa-bookmark"></i>
+                <span>书签管理器</span>
             </div>
-        </header>
-
-        <!-- 分类标签栏 -->
-        <nav class="tabs-wrapper">
-            <div class="tabs" id="categoryTabs">
-                <!-- 分类标签由JS动态生成 -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索书签...">
             </div>
-        </nav>
-    </div>
+            <div class="actions">
+                <button class="btn" id="importBtn" title="导入">
+                    <i class="fas fa-file-import"></i>
+                    <span>导入</span>
+                </button>
+                <button class="btn" id="exportBtn" title="导出">
+                    <i class="fas fa-file-export"></i>
+                    <span>导出</span>
+                </button>
+                <button class="btn btn-primary" id="addBookmarkBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>添加</span>
+                </button>
+                <button class="btn btn-icon" id="themeToggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+        <div class="tabs-container">
+            <div class="tabs" id="categoryTabs"></div>
+        </div>
+    </header>
 
     <!-- 主内容区 -->
     <main class="main">

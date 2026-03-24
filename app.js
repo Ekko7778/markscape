@@ -474,10 +474,15 @@ function getFaviconServices(hostname) {
 }
 
 function getFavicon(bookmark) {
-    // 如果书签已有 favicon，直接使用
+    // 如果书签已有 favicon（包括 'failed' 状态），根据状态处理
     if (bookmark.favicon) {
+        // 如果是获取失败状态，直接显示默认图标
+        if (bookmark.favicon === 'failed') {
+            return `<i class="fas fa-link" style="color: var(--accent)"></i>`;
+        }
+        // 有有效的 favicon URL
         return `<img src="${bookmark.favicon}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <i class="fas fa-link" style="display:none"></i>`;
+                <i class="fas fa-link" style="display:none;color: var(--accent)"></i>`;
     }
 
     const hostname = new URL(bookmark.url).hostname;
@@ -529,6 +534,7 @@ window.tryNextFavicon = function(img, currentIndex, hostname, bookmarkId) {
     // 清除之前的定时器
     if (img.faviconTimer) {
         clearTimeout(img.faviconTimer);
+        img.faviconTimer = null;
     }
 
     const faviconServices = getFaviconServices(hostname);
@@ -537,18 +543,29 @@ window.tryNextFavicon = function(img, currentIndex, hostname, bookmarkId) {
     if (nextIndex < faviconServices.length) {
         img.src = faviconServices[nextIndex];
         img.dataset.faviconIndex = nextIndex;
-        // 更新 onload 事件，传递 bookmarkId
+        // 更新 onload 事件
         img.onload = function() {
             window.onFaviconLoad(img, nextIndex, hostname, bookmarkId);
+        };
+        // 更新 onerror 事件（关键修复！）
+        img.onerror = function() {
+            window.tryNextFavicon(img, nextIndex, hostname, bookmarkId);
         };
         // 设置超时
         img.faviconTimer = setTimeout(() => {
             window.tryNextFavicon(img, nextIndex, hostname, bookmarkId);
         }, FAVICON_TIMEOUT);
     } else {
-        // 所有服务都失败，显示默认图标
+        // 所有服务都失败，显示默认图标并保存失败状态
         img.style.display = 'none';
         img.nextElementSibling.style.display = 'flex';
+
+        // 保存失败状态到书签数据，下次不再尝试获取
+        const bookmark = data.bookmarks.find(b => b.id === bookmarkId);
+        if (bookmark && !bookmark.favicon) {
+            bookmark.favicon = 'failed';
+            saveData();
+        }
     }
 };
 
@@ -559,12 +576,14 @@ function initFaviconTimeouts() {
         // 如果已经有定时器，跳过
         if (img.faviconTimer) return;
 
-        const currentIndex = parseInt(img.dataset.faviconIndex, 10);
+        // 从当前图片状态获取 index，而不是使用闭包
         const hostname = img.dataset.faviconHostname;
         const bookmarkId = img.dataset.faviconBookmarkId;
 
-        // 设置超时定时器
+        // 设置超时定时器，使用函数获取当前 index
         img.faviconTimer = setTimeout(() => {
+            // 重新获取当前 index，因为可能已经改变
+            const currentIndex = parseInt(img.dataset.faviconIndex, 10);
             window.tryNextFavicon(img, currentIndex, hostname, bookmarkId);
         }, FAVICON_TIMEOUT);
     });
@@ -1174,8 +1193,8 @@ function bindEvents() {
     // URL 输入框 - 自动获取标题
     document.getElementById('bookmarkUrl').addEventListener('input', onUrlInput);
 
-    // 回车键保存书签（描述框除外）
-    const enterSaveInputs = ['bookmarkUrl', 'bookmarkTitle', 'bookmarkCategory', 'bookmarkTags'];
+    // 回车键保存书签（描述框和标签框除外）
+    const enterSaveInputs = ['bookmarkUrl', 'bookmarkTitle', 'bookmarkCategory'];
     enterSaveInputs.forEach(id => {
         document.getElementById(id)?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -1183,6 +1202,36 @@ function bindEvents() {
                 saveBookmark();
             }
         });
+    });
+
+    // 标签输入框 - 回车键添加逗号分隔
+    document.getElementById('bookmarkTags')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const input = e.target;
+            const value = input.value.trim();
+            // 如果末尾没有逗号，添加逗号和空格
+            if (value && !value.endsWith(',') && !value.endsWith('，')) {
+                input.value = value + ', ';
+            }
+        }
+    });
+
+    // 分类输入框变化时，自动添加分类名称到标签
+    document.getElementById('bookmarkCategory')?.addEventListener('change', (e) => {
+        const categoryName = e.target.value.trim();
+        const tagsInput = document.getElementById('bookmarkTags');
+        if (!tagsInput) return;
+
+        const currentTags = tagsInput.value;
+
+        // 如果有分类名称，且标签中没有这个分类，自动添加
+        if (categoryName) {
+            const tags = currentTags.split(',').map(t => t.trim()).filter(t => t);
+            if (!tags.includes(categoryName)) {
+                tagsInput.value = categoryName + (currentTags ? ', ' + currentTags : '');
+            }
+        }
     });
 
     // 添加分类

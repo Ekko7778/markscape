@@ -270,17 +270,18 @@ function selectCategory(categoryId) {
 }
 
 function updateCategorySelect() {
-    const select = document.getElementById('bookmarkCategory');
-    const formGroup = select.closest('.form-group');
+    const datalist = document.getElementById('categoryList');
+    const input = document.getElementById('bookmarkCategory');
+    const formGroup = input.closest('.form-group');
 
     const categories = data.categories.filter(c => c.id !== 'all');
-    select.innerHTML = categories
-        .map(c => `<option value="${c.id}">${c.name}</option>`)
+    datalist.innerHTML = categories
+        .map(c => `<option value="${c.name}">`)
         .join('');
 
-    // 没有分类时隐藏整个表单组
+    // 始终显示分类输入框（允许输入新分类）
     if (formGroup) {
-        formGroup.style.display = categories.length > 0 ? 'block' : 'none';
+        formGroup.style.display = 'block';
     }
 }
 
@@ -681,7 +682,9 @@ function editBookmark(id) {
     document.getElementById('bookmarkUrl').value = bookmark.url;
     document.getElementById('bookmarkTitle').value = bookmark.title;
     document.getElementById('bookmarkDesc').value = bookmark.description || '';
-    document.getElementById('bookmarkCategory').value = bookmark.categoryId || '';
+    // 设置分类名称（而不是 ID）
+    const category = data.categories.find(c => c.id === bookmark.categoryId);
+    document.getElementById('bookmarkCategory').value = category ? category.name : '';
     document.getElementById('bookmarkTags').value = bookmark.tags?.join(', ') || '';
     document.getElementById('bookmarkModal').classList.add('active');
 }
@@ -690,7 +693,7 @@ function saveBookmark() {
     let url = normalizeUrl(document.getElementById('bookmarkUrl').value);
     const title = document.getElementById('bookmarkTitle').value.trim();
     const description = document.getElementById('bookmarkDesc').value.trim();
-    const categoryId = document.getElementById('bookmarkCategory').value;
+    const categoryName = document.getElementById('bookmarkCategory').value.trim();
     const tagsStr = document.getElementById('bookmarkTags').value;
 
     if (!url || !title) {
@@ -704,6 +707,28 @@ function saveBookmark() {
     } catch {
         showToast('请输入有效的URL', 'error');
         return;
+    }
+
+    // 处理分类：查找或创建
+    let categoryId = '';
+    if (categoryName) {
+        // 查找已有分类（按名称匹配）
+        const existingCategory = data.categories.find(
+            c => c.id !== 'all' && c.name.toLowerCase() === categoryName.toLowerCase()
+        );
+        if (existingCategory) {
+            categoryId = existingCategory.id;
+        } else {
+            // 创建新分类
+            const newCategory = {
+                id: 'cat_' + Date.now(),
+                name: categoryName,
+                icon: 'fa-folder',
+                isDefault: false
+            };
+            data.categories.push(newCategory);
+            categoryId = newCategory.id;
+        }
     }
 
     const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
@@ -806,6 +831,10 @@ function openCategoryModal() {
     document.getElementById('categoryIcon').value = 'fa-folder';
     document.getElementById('categoryModal').classList.add('active');
     document.getElementById('categoryModalTitle').textContent = '添加分类';
+    // 自动聚焦到输入框
+    setTimeout(() => {
+        document.getElementById('categoryName').focus();
+    }, 100);
 }
 
 function openEditCategoryModal(categoryId) {
@@ -1158,6 +1187,14 @@ function bindEvents() {
 
     // 添加分类
     document.getElementById('addCategoryBtn').addEventListener('click', openCategoryModal);
+
+    // 分类模态框回车保存
+    document.getElementById('categoryName').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveCategory();
+        }
+    });
 
     // 主题切换
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);

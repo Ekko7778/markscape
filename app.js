@@ -70,6 +70,7 @@ let searchTimeout = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     loadTheme();
+    loadCategorySelection(); // 加载保存的分类选择
     Toast.init();
     initScrollButtons();
     renderCategories();
@@ -265,8 +266,18 @@ function updateScrollButtons() {
 
 function selectCategory(categoryId) {
     currentCategory = categoryId;
+    // 保存分类选择
+    localStorage.setItem('selectedCategory', categoryId);
     renderCategories();
     renderBookmarks();
+}
+
+// 加载保存的分类选择
+function loadCategorySelection() {
+    const saved = localStorage.getItem('selectedCategory');
+    if (saved && data.categories.find(c => c.id === saved)) {
+        currentCategory = saved;
+    }
 }
 
 function updateCategorySelect() {
@@ -865,6 +876,10 @@ function openEditCategoryModal(categoryId) {
     document.getElementById('categoryIcon').value = category.icon;
     document.getElementById('categoryModal').classList.add('active');
     document.getElementById('categoryModalTitle').textContent = '编辑分类';
+    // 自动聚焦到输入框
+    setTimeout(() => {
+        document.getElementById('categoryName').focus();
+    }, 100);
 }
 
 function closeCategoryModal() {
@@ -1263,13 +1278,7 @@ function bindEvents() {
         }
     });
 
-    // 点击书签模态框外部不关闭（统一行为）
-    // 用户明确要求编辑时不关闭，所以完全移除此功能
-    document.getElementById('categoryModal').addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay')) {
-            closeCategoryModal();
-        }
-    });
+    // 点击模态框外部不关闭（用户要求）
 
     // ESC 关闭模态框 + 快捷键
     document.addEventListener('keydown', (e) => {

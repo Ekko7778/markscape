@@ -271,10 +271,17 @@ function selectCategory(categoryId) {
 
 function updateCategorySelect() {
     const select = document.getElementById('bookmarkCategory');
-    select.innerHTML = data.categories
-        .filter(c => c.id !== 'all')
+    const formGroup = select.closest('.form-group');
+
+    const categories = data.categories.filter(c => c.id !== 'all');
+    select.innerHTML = categories
         .map(c => `<option value="${c.id}">${c.name}</option>`)
         .join('');
+
+    // 没有分类时隐藏整个表单组
+    if (formGroup) {
+        formGroup.style.display = categories.length > 0 ? 'block' : 'none';
+    }
 }
 
 // ========== 渲染书签 ==========
@@ -451,6 +458,91 @@ function openAddModal() {
     document.getElementById('bookmarkTags').value = '';
     document.getElementById('bookmarkCategory').value = currentCategory !== 'all' ? currentCategory : '';
     document.getElementById('bookmarkModal').classList.add('active');
+    // 光标自动定位到 URL 输入框
+    setTimeout(() => {
+        document.getElementById('bookmarkUrl').focus();
+    }, 100);
+}
+
+// URL 自动补全
+function normalizeUrl(url) {
+    url = url.trim();
+    if (!url) return '';
+
+    // 如果已经有协议，直接返回
+    if (/^https?:\/\//i.test(url)) {
+        return url;
+    }
+
+    // 添加 https://
+    return 'https://' + url;
+}
+
+// 获取网页标题
+async function fetchPageTitle(url) {
+    try {
+        // 使用 CORS 代理获取页面内容
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const response = await fetch(proxyUrl, {
+            signal: AbortSignal.timeout(8000) // 8秒超时
+        });
+
+        if (!response.ok) return null;
+
+        const html = await response.text();
+
+        // 提取 title 标签内容
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch && titleMatch[1]) {
+            // 解码 HTML 实体
+            const title = titleMatch[1]
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n))
+                .trim();
+            return title || null;
+        }
+        return null;
+    } catch (e) {
+        console.log('获取标题失败:', e.message);
+        return null;
+    }
+}
+
+// URL 输入框变化时自动获取标题
+let titleFetchTimeout = null;
+function onUrlInput() {
+    const urlInput = document.getElementById('bookmarkUrl');
+    const titleInput = document.getElementById('bookmarkTitle');
+
+    clearTimeout(titleFetchTimeout);
+
+    titleFetchTimeout = setTimeout(async () => {
+        let url = normalizeUrl(urlInput.value);
+        if (!url) return;
+
+        // 验证 URL 是否有效
+        try {
+            new URL(url);
+        } catch {
+            return;
+        }
+
+        // 如果标题为空，自动获取
+        if (!titleInput.value.trim()) {
+            titleInput.placeholder = '正在获取标题...';
+            const title = await fetchPageTitle(url);
+            if (title) {
+                titleInput.value = title;
+                titleInput.placeholder = '';
+            } else {
+                titleInput.placeholder = '网站标题';
+            }
+        }
+    }, 800); // 停止输入 800ms 后开始获取
 }
 
 function editBookmark(id) {
@@ -468,7 +560,7 @@ function editBookmark(id) {
 }
 
 function saveBookmark() {
-    const url = document.getElementById('bookmarkUrl').value.trim();
+    let url = normalizeUrl(document.getElementById('bookmarkUrl').value);
     const title = document.getElementById('bookmarkTitle').value.trim();
     const description = document.getElementById('bookmarkDesc').value.trim();
     const categoryId = document.getElementById('bookmarkCategory').value;
@@ -905,6 +997,9 @@ function bindEvents() {
 
     // 添加书签按钮
     document.getElementById('addBookmarkBtn').addEventListener('click', openAddModal);
+
+    // URL 输入框 - 自动获取标题
+    document.getElementById('bookmarkUrl').addEventListener('input', onUrlInput);
 
     // 添加分类
     document.getElementById('addCategoryBtn').addEventListener('click', openCategoryModal);

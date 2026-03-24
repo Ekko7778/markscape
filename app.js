@@ -281,18 +281,20 @@ function loadCategorySelection() {
 }
 
 function updateCategorySelect() {
-    const datalist = document.getElementById('categoryList');
-    const input = document.getElementById('bookmarkCategory');
-    const formGroup = input.closest('.form-group');
+    const dropdown = document.getElementById('categoryDropdown');
+    if (!dropdown) return;
 
     const categories = data.categories.filter(c => c.id !== 'all');
-    datalist.innerHTML = categories
-        .map(c => `<option value="${c.name}">`)
+    dropdown.innerHTML = categories
+        .map(c => `<div class="custom-select-option" data-name="${escapeHtml(c.name)}">
+                        <i class="fas ${c.icon}"></i>
+                        <span>${escapeHtml(c.name)}</span>
+                   </div>`)
         .join('');
 
-    // 始终显示分类输入框（允许输入新分类）
-    if (formGroup) {
-        formGroup.style.display = 'block';
+    // 如果没有分类，显示提示
+    if (categories.length === 0) {
+        dropdown.innerHTML = '<div class="custom-select-option" style="color: var(--text-muted); cursor: default;">暂无分类，请输入新分类名</div>';
     }
 }
 
@@ -1196,6 +1198,41 @@ function importBrowserBookmarks(html) {
 
 // ========== 事件绑定 ==========
 function bindEvents() {
+    // 自定义分类下拉框
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryInput = document.getElementById('bookmarkCategory');
+    const categoryDropdown = document.getElementById('categoryDropdown');
+
+    if (categorySelect && categoryInput && categoryDropdown) {
+        // 点击输入框显示/隐藏下拉框
+        categoryInput.addEventListener('focus', () => {
+            categorySelect.classList.add('open');
+            updateCategorySelect();
+        });
+
+        // 点击下拉图标切换
+        categorySelect.querySelector('.dropdown-icon')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            categoryInput.focus();
+        });
+
+        // 选择选项
+        categoryDropdown.addEventListener('click', (e) => {
+            const option = e.target.closest('.custom-select-option');
+            if (option && option.dataset.name) {
+                categoryInput.value = option.dataset.name;
+                categorySelect.classList.remove('open');
+            }
+        });
+
+        // 点击外部关闭
+        document.addEventListener('click', (e) => {
+            if (!categorySelect.contains(e.target)) {
+                categorySelect.classList.remove('open');
+            }
+        });
+    }
+
     // 搜索（带防抖）
     document.getElementById('searchInput').addEventListener('input', () => {
         clearTimeout(searchTimeout);
@@ -1229,6 +1266,18 @@ function bindEvents() {
             if (value && !value.endsWith(',') && !value.endsWith('，')) {
                 input.value = value + ', ';
             }
+        }
+    });
+
+    // URL 输入框旁的跳转按钮
+    document.getElementById('openUrlBtn')?.addEventListener('click', () => {
+        let url = document.getElementById('bookmarkUrl').value.trim();
+        if (url) {
+            // 自动补全 URL
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            window.open(url, '_blank');
         }
     });
 

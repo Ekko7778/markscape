@@ -50,11 +50,57 @@
         }
 
         /* ========== 页面基础 ========== */
+        html {
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
             min-height: 100vh;
             color: var(--text-primary);
+        }
+
+        /* 自定义滚动条 - 不滚动时隐藏 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        html:not(:hover)::-webkit-scrollbar-thumb,
+        body:not(:hover)::-webkit-scrollbar-thumb {
+            background: transparent;
+        }
+
+        html:hover::-webkit-scrollbar-thumb,
+        body:hover::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Firefox 滚动条 */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+        html:hover,
+        body:hover {
+            scrollbar-color: var(--border) transparent;
         }
 
         /* ========== 导航栏 ========== */
@@ -167,6 +213,18 @@
             justify-content: center;
         }
 
+        #clearAllBtn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #EF4444;
+            color: #EF4444;
+        }
+
+        #addCategoryBtn:hover {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
         /* 标签栏 */
         .tabs-container {
             padding: 8px 20px 12px;
@@ -234,16 +292,6 @@
             background: rgba(255,255,255,0.2);
         }
 
-        .tab-add {
-            color: var(--text-muted);
-            border: 1px dashed var(--border);
-        }
-
-        .tab-add:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
         .tab-delete {
             position: absolute;
             top: -6px;
@@ -265,8 +313,35 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .tab-wrapper:hover .tab-delete {
+        .tab-edit {
+            position: absolute;
+            top: -6px;
+            right: 14px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: #3B82F6;
+            color: #fff;
+            font-size: 0.55rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tab-wrapper:hover .tab-delete,
+        .tab-wrapper:hover .tab-edit {
             opacity: 1;
+        }
+
+        .tab-edit:hover {
+            background: #2563EB;
+            transform: scale(1.1);
         }
 
         .tab-delete:hover {
@@ -695,6 +770,12 @@
                     <i class="fas fa-plus"></i>
                     <span>添加</span>
                 </button>
+                <button class="btn btn-icon" id="addCategoryBtn" title="添加分类">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button class="btn btn-icon" id="clearAllBtn" title="清空所有书签">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <button class="btn btn-icon" id="themeToggle" title="切换主题">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -764,7 +845,7 @@
     <div class="modal-overlay" id="categoryModal">
         <div class="modal">
             <div class="modal-header">
-                <h2>添加分类</h2>
+                <h2 id="categoryModalTitle">添加分类</h2>
                 <button class="modal-close" onclick="closeCategoryModal()">
                     <i class="fas fa-times"></i>
                 </button>

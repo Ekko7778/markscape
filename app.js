@@ -196,6 +196,18 @@ function renderCategories() {
         wrapper.appendChild(tab);
 
         if (!cat.isDefault) {
+            // 编辑按钮
+            const editBtn = document.createElement('button');
+            editBtn.className = 'tab-edit';
+            editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+            editBtn.title = '编辑分类';
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                openEditCategoryModal(cat.id);
+            };
+            wrapper.appendChild(editBtn);
+
+            // 删除按钮
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'tab-delete';
             deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -208,13 +220,6 @@ function renderCategories() {
 
         container.appendChild(wrapper);
     });
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'tab tab-add';
-    addBtn.innerHTML = '<i class="fas fa-plus"></i>';
-    addBtn.title = '添加分类';
-    addBtn.onclick = openCategoryModal;
-    container.appendChild(addBtn);
 
     updateCategorySelect();
 }
@@ -500,14 +505,30 @@ function closeModal() {
 }
 
 // ========== 分类操作 ==========
+let editingCategoryId = null;
+
 function openCategoryModal() {
+    editingCategoryId = null;
     document.getElementById('categoryName').value = '';
     document.getElementById('categoryIcon').value = 'fa-folder';
     document.getElementById('categoryModal').classList.add('active');
+    document.getElementById('categoryModalTitle').textContent = '添加分类';
+}
+
+function openEditCategoryModal(categoryId) {
+    const category = data.categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    editingCategoryId = categoryId;
+    document.getElementById('categoryName').value = category.name;
+    document.getElementById('categoryIcon').value = category.icon;
+    document.getElementById('categoryModal').classList.add('active');
+    document.getElementById('categoryModalTitle').textContent = '编辑分类';
 }
 
 function closeCategoryModal() {
     document.getElementById('categoryModal').classList.remove('active');
+    editingCategoryId = null;
 }
 
 function saveCategory() {
@@ -519,17 +540,29 @@ function saveCategory() {
         return;
     }
 
-    const newCategory = {
-        id: 'cat_' + Date.now(),
-        name,
-        icon
-    };
+    if (editingCategoryId) {
+        // 编辑模式
+        const category = data.categories.find(c => c.id === editingCategoryId);
+        if (category) {
+            category.name = name;
+            category.icon = icon;
+            showToast('分类已更新', 'success');
+        }
+    } else {
+        // 添加模式
+        const newCategory = {
+            id: 'cat_' + Date.now(),
+            name,
+            icon,
+            isDefault: false
+        };
+        data.categories.push(newCategory);
+        showToast('分类已添加', 'success');
+    }
 
-    data.categories.push(newCategory);
     saveData();
     closeCategoryModal();
     renderCategories();
-    showToast('分类已添加', 'success');
 }
 
 // 删除分类相关
@@ -585,6 +618,21 @@ function confirmDeleteCategory(keepBookmarks) {
     renderBookmarks();
 }
 
+// ========== 清空所有书签 ==========
+function clearAllBookmarks() {
+    if (data.bookmarks.length === 0) {
+        showToast('没有书签可删除', 'warning');
+        return;
+    }
+
+    if (confirm(`确定要删除全部 ${data.bookmarks.length} 个书签吗？\n此操作不可撤销！`)) {
+        data.bookmarks = [];
+        saveData();
+        renderBookmarks();
+        showToast('已清空所有书签', 'success');
+    }
+}
+
 // ========== 导入导出 ==========
 function exportData() {
     const json = JSON.stringify(data, null, 2);
@@ -636,47 +684,126 @@ function importData(file) {
     reader.readAsText(file);
 }
 
-// 导入浏览器书签 HTML
+// 导入浏览器书签 HTML（支持文件夹结构）
 function importBrowserBookmarks(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const links = doc.querySelectorAll('a');
 
+    const importedCategories = [];
     const importedBookmarks = [];
-    let importedCount = 0;
+    const categoryMap = new Map(); // 文件夹名 -> categoryId
+    let bookmarkIdCounter = 0;
+    let categoryIdCounter = 0;
 
-    links.forEach(link => {
-        const url = link.getAttribute('href');
-        const title = link.textContent?.trim();
-        const icon = link.getAttribute('icon');
+    // 分类图标映射
+    const categoryIcons = {
+        '默认': 'fa-folder',
+        '工作': 'fa-briefcase',
+        '学习': 'fa-book',
+        '开发': 'fa-code',
+        '娱乐': 'fa-gamepad',
+        '购物': 'fa-shopping-cart',
+        '社交': 'fa-users',
+        '新闻': 'fa-newspaper',
+        '音乐': 'fa-music',
+        '视频': 'fa-video',
+        '图片': 'fa-image',
+        '工具': 'fa-tools',
+        '阅读': 'fa-book-open',
+        '旅行': 'fa-plane',
+        '美食': 'fa-utensils'
+    };
 
-        if (url && title && url.startsWith('http')) {
-            importedBookmarks.push({
-                id: Date.now().toString() + '_' + importedCount,
-                url,
-                title,
-                description: '',
-                categoryId: '',
-                tags: [],
-                favicon: icon || ''
-            });
-            importedCount++;
+    // 根据名称猜测图标
+    function guessIcon(name) {
+        for (const [key, icon] of Object.entries(categoryIcons)) {
+            if (name.includes(key)) return icon;
         }
-    });
+        return 'fa-folder';
+    }
 
-    if (importedCount === 0) {
+    // 递归解析书签结构
+    function parseFolder(element, parentPath = '') {
+        const items = element.querySelectorAll(':scope > dt');
+
+        items.forEach(dt => {
+            const h3 = dt.querySelector(':scope > h3');
+            const dl = dt.querySelector(':scope > dl');
+            const link = dt.querySelector(':scope > a');
+
+            if (h3 && dl) {
+                // 这是一个文件夹
+                const folderName = h3.textContent?.trim();
+                if (folderName && folderName !== '书签栏' && folderName !== 'Bookmarks bar') {
+                    const categoryId = 'imported_' + Date.now() + '_' + categoryIdCounter++;
+                    const fullPath = parentPath ? `${parentPath}/${folderName}` : folderName;
+
+                    importedCategories.push({
+                        id: categoryId,
+                        name: folderName,
+                        icon: guessIcon(folderName),
+                        isDefault: false
+                    });
+                    categoryMap.set(fullPath, categoryId);
+
+                    // 递归解析子文件夹
+                    parseFolder(dl, fullPath);
+                } else if (folderName) {
+                    // 跳过"书签栏"层级，但继续解析其内容
+                    parseFolder(dl, parentPath);
+                }
+            } else if (link) {
+                // 这是一个书签
+                const url = link.getAttribute('href');
+                const title = link.textContent?.trim();
+                const icon = link.getAttribute('icon');
+                const addDate = link.getAttribute('add_date');
+
+                if (url && title && (url.startsWith('http') || url.startsWith('https'))) {
+                    importedBookmarks.push({
+                        id: Date.now().toString() + '_' + bookmarkIdCounter++,
+                        url,
+                        title,
+                        description: '',
+                        categoryId: categoryMap.get(parentPath) || '',
+                        tags: [],
+                        favicon: icon || '',
+                        addDate: addDate || null
+                    });
+                }
+            }
+        });
+    }
+
+    // 找到主书签列表并解析
+    const mainDl = doc.querySelector('dl') || doc.body;
+    parseFolder(mainDl);
+
+    // 统计
+    const folderCount = importedCategories.length;
+    const bookmarkCount = importedBookmarks.length;
+
+    if (bookmarkCount === 0) {
         showToast('未找到有效书签', 'warning');
         return;
     }
 
-    if (confirm(`发现 ${importedCount} 个书签，是否合并到现有数据？\n（选择"取消"将覆盖现有数据）`)) {
+    // 显示导入预览
+    const message = folderCount > 0
+        ? `发现 ${bookmarkCount} 个书签，${folderCount} 个文件夹\n是否合并到现有数据？\n（选择"取消"将覆盖现有数据）`
+        : `发现 ${bookmarkCount} 个书签，是否合并到现有数据？\n（选择"取消"将覆盖现有数据）`;
+
+    if (confirm(message)) {
         // 合并模式
+        data.categories = [...data.categories, ...importedCategories];
         data.bookmarks = [...importedBookmarks, ...data.bookmarks];
-        showToast(`成功导入 ${importedCount} 个书签`, 'success');
+        showToast(`成功导入 ${bookmarkCount} 个书签，${folderCount} 个分类`, 'success');
     } else {
-        // 覆盖模式
+        // 覆盖模式（保留默认分类）
+        const defaultCategories = data.categories.filter(c => c.isDefault);
+        data.categories = [...defaultCategories, ...importedCategories];
         data.bookmarks = importedBookmarks;
-        showToast(`成功导入 ${importedCount} 个书签（已覆盖）`, 'success');
+        showToast(`成功导入 ${bookmarkCount} 个书签，${folderCount} 个分类（已覆盖）`, 'success');
     }
 
     saveData();
@@ -696,8 +823,14 @@ function bindEvents() {
     // 添加书签按钮
     document.getElementById('addBookmarkBtn').addEventListener('click', openAddModal);
 
+    // 添加分类
+    document.getElementById('addCategoryBtn').addEventListener('click', openCategoryModal);
+
     // 主题切换
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    // 清空所有书签
+    document.getElementById('clearAllBtn').addEventListener('click', clearAllBookmarks);
 
     // 导入导出
     document.getElementById('exportBtn').addEventListener('click', exportData);

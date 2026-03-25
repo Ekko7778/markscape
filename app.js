@@ -247,6 +247,15 @@ function updateScrollButtons() {
 
     leftBtn.classList.toggle('visible', hasOverflow && canScrollLeft);
     rightBtn.classList.toggle('visible', hasOverflow && canScrollRight);
+
+    // 如果没有溢出，居中显示；否则左对齐支持滚动
+    if (!hasOverflow) {
+        tabs.style.transform = 'translateX(0)';
+        tabs.style.margin = '0 auto';
+    } else {
+        tabs.style.margin = '0';
+        tabs.style.transform = `translateX(-${scrollPosition}px)`;
+    }
 }
 
 function selectCategory(categoryId) {

@@ -195,31 +195,16 @@ function renderCategories() {
             <span class="tab-count">${count}</span>
         `;
         tab.onclick = () => selectCategory(cat.id);
-        wrapper.appendChild(tab);
 
-        // 非默认分类添加编辑和删除按钮
+        // 非默认分类添加右键菜单
         if (!cat.isDefault) {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'tab-action tab-edit';
-            editBtn.innerHTML = '<i class="fas fa-pen"></i>';
-            editBtn.title = '编辑分类';
-            editBtn.onclick = (e) => {
-                e.stopPropagation();
-                openEditCategoryModal(cat.id);
+            tab.oncontextmenu = (e) => {
+                e.preventDefault();
+                showCategoryContextMenu(e, cat.id);
             };
-            wrapper.appendChild(editBtn);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'tab-action tab-delete';
-            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
-            deleteBtn.title = '删除分类';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                openDeleteCategoryModal(cat.id);
-            };
-            wrapper.appendChild(deleteBtn);
         }
 
+        wrapper.appendChild(tab);
         container.appendChild(wrapper);
     });
 
@@ -1372,3 +1357,54 @@ function bindEvents() {
         }
     });
 }
+
+// ========== 右键菜单 ==========
+let contextMenuTargetId = null;
+
+function showCategoryContextMenu(e, categoryId) {
+    const menu = document.getElementById('categoryContextMenu');
+    contextMenuTargetId = categoryId;
+
+    // 定位菜单
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+    menu.classList.add('show');
+
+    // 确保菜单不超出屏幕
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        menu.style.top = (window.innerHeight - rect.height - 10) + 'px';
+    }
+}
+
+function hideCategoryContextMenu() {
+    const menu = document.getElementById('categoryContextMenu');
+    menu.classList.remove('show');
+    contextMenuTargetId = null;
+}
+
+// 右键菜单事件绑定
+document.getElementById('ctxEditCategory').addEventListener('click', () => {
+    if (contextMenuTargetId) {
+        openEditCategoryModal(contextMenuTargetId);
+    }
+    hideCategoryContextMenu();
+});
+
+document.getElementById('ctxDeleteCategory').addEventListener('click', () => {
+    if (contextMenuTargetId) {
+        openDeleteCategoryModal(contextMenuTargetId);
+    }
+    hideCategoryContextMenu();
+});
+
+// 点击其他地方关闭菜单
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('categoryContextMenu');
+    if (!menu.contains(e.target)) {
+        hideCategoryContextMenu();
+    }
+});

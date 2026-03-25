@@ -369,49 +369,55 @@
             background: rgba(255,255,255,0.2);
         }
 
-        /* 分类操作按钮（悬浮在右上角） */
-        .tab-action {
-            position: absolute;
-            top: -8px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: none;
-            font-size: 0.6rem;
+        /* 右键菜单 */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            min-width: 120px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 10px 14px;
             cursor: pointer;
+            border-radius: 6px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.2s;
-            z-index: 101;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            gap: 10px;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: all 0.15s;
         }
 
-        .tab-wrapper:hover .tab-action {
-            opacity: 1;
+        .context-menu-item:hover {
+            background: var(--bg-primary);
         }
 
-        .tab-edit {
-            right: 18px;
-            background: var(--accent);
-            color: #fff;
+        .context-menu-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 0.8rem;
         }
 
-        .tab-edit:hover {
-            background: var(--accent-hover);
-            transform: scale(1.15);
+        .context-menu-item.edit i {
+            color: var(--accent);
         }
 
-        .tab-delete {
-            right: -8px;
-            background: #EF4444;
-            color: #fff;
+        .context-menu-item.delete i {
+            color: #EF4444;
         }
 
-        .tab-delete:hover {
-            background: #DC2626;
-            transform: scale(1.15);
+        .context-menu-item.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
         }
 
         .tabs-scroll-btn.left {
@@ -1231,6 +1237,18 @@
 
     <!-- Toast 通知容器 -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 分类右键菜单 -->
+    <div class="context-menu" id="categoryContextMenu">
+        <div class="context-menu-item edit" id="ctxEditCategory">
+            <i class="fas fa-pen"></i>
+            <span>编辑分类</span>
+        </div>
+        <div class="context-menu-item delete" id="ctxDeleteCategory">
+            <i class="fas fa-trash"></i>
+            <span>删除分类</span>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

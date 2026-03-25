@@ -151,7 +151,7 @@
 
         .search-box input {
             width: 100%;
-            padding: 10px 12px 10px 36px;
+            padding: 10px 32px 10px 36px;
             background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -175,6 +175,46 @@
             transform: translateY(-50%);
             color: var(--text-muted);
             font-size: 0.95rem;
+        }
+
+        .search-box .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .search-box .clear-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .search-box .clear-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .search-box .clear-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .search-box .clear-btn.visible {
+            display: flex;
         }
 
         .actions {
@@ -294,7 +334,7 @@
 
         /* 标签栏 */
         .tabs-container {
-            padding: 8px 20px 12px;
+            padding: 14px 20px 18px;
             max-width: 1200px;
             margin: 0 auto;
             position: relative;
@@ -337,8 +377,8 @@
         }
 
         .tab {
-            padding: 6px 14px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
@@ -350,7 +390,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
-            height: 32px;
+            height: 40px;
             box-sizing: border-box;
         }
 
@@ -463,8 +503,8 @@
         }
 
         .tab {
-            padding: 6px 14px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
@@ -476,7 +516,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
-            height: 32px;
+            height: 40px;
             box-sizing: border-box;
         }
 
@@ -1103,6 +1143,7 @@
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="搜索书签...">
+                    <button class="clear-btn" id="clearSearchBtn" title="清空搜索">×</button>
                 </div>
             </div>
             <button class="btn btn-icon theme-toggle" id="themeToggle" title="切换主题">

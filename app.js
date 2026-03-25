@@ -1228,9 +1228,22 @@ function bindEvents() {
     }
 
     // 搜索（带防抖）
-    document.getElementById('searchInput').addEventListener('input', () => {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(renderBookmarks, 300);
+        // 显示/隐藏清空按钮
+        clearSearchBtn.classList.toggle('visible', searchInput.value.length > 0);
+    });
+
+    // 清空搜索按钮
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.classList.remove('visible');
+        renderBookmarks();
+        searchInput.focus();
     });
 
     // 添加书签按钮

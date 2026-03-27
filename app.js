@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTheme();
     loadCategorySelection(); // 加载保存的分类选择
     Toast.init();
-    initScrollButtons();
     renderCategories();
     renderBookmarks();
     bindEvents();
@@ -176,86 +175,38 @@ function showToast(message, type = 'success') {
 
 // ========== 渲染分类 ==========
 function renderCategories() {
-    const container = document.getElementById('categoryTabs');
-    container.innerHTML = '';
+    const sidebar = document.getElementById('sidebar');
+    // 保留标题，清除其余内容
+    const title = sidebar.querySelector('.sidebar-title');
+    sidebar.innerHTML = '';
+    sidebar.appendChild(title);
 
     data.categories.forEach(cat => {
         const count = cat.id === 'all'
             ? data.bookmarks.length
             : data.bookmarks.filter(b => b.categoryId === cat.id).length;
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'tab-wrapper';
-
-        const tab = document.createElement('button');
-        tab.className = `tab ${currentCategory === cat.id ? 'active' : ''}`;
-        tab.innerHTML = `
+        const item = document.createElement('button');
+        item.className = `sidebar-item ${currentCategory === cat.id ? 'active' : ''}`;
+        item.innerHTML = `
             <i class="fas ${cat.icon}"></i>
-            ${cat.name}
-            <span class="tab-count">${count}</span>
+            <span class="sidebar-item-name">${cat.name}</span>
+            <span class="sidebar-item-count">${count}</span>
         `;
-        tab.onclick = () => selectCategory(cat.id);
+        item.onclick = () => selectCategory(cat.id);
 
         // 非默认分类添加右键菜单
         if (!cat.isDefault) {
-            tab.oncontextmenu = (e) => {
+            item.oncontextmenu = (e) => {
                 e.preventDefault();
                 showCategoryContextMenu(e, cat.id);
             };
         }
 
-        wrapper.appendChild(tab);
-        container.appendChild(wrapper);
+        sidebar.appendChild(item);
     });
 
     updateCategorySelect();
-    updateScrollButtons();
-}
-
-// ========== 分类滚动按钮 ==========
-let scrollPosition = 0;
-
-function initScrollButtons() {
-    const leftBtn = document.getElementById('scrollLeftBtn');
-    const rightBtn = document.getElementById('scrollRightBtn');
-
-    leftBtn.addEventListener('click', () => scrollTabs(-200));
-    rightBtn.addEventListener('click', () => scrollTabs(200));
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', updateScrollButtons);
-}
-
-function scrollTabs(delta) {
-    const tabs = document.getElementById('categoryTabs');
-    const wrapper = tabs.parentElement;
-    const maxScroll = tabs.scrollWidth - wrapper.clientWidth;
-    scrollPosition = Math.max(0, Math.min(scrollPosition + delta, maxScroll));
-    tabs.style.transform = `translateX(-${scrollPosition}px)`;
-    updateScrollButtons();
-}
-
-function updateScrollButtons() {
-    const tabs = document.getElementById('categoryTabs');
-    const wrapper = tabs.parentElement;
-    const leftBtn = document.getElementById('scrollLeftBtn');
-    const rightBtn = document.getElementById('scrollRightBtn');
-
-    const hasOverflow = tabs.scrollWidth > wrapper.clientWidth;
-    const canScrollLeft = scrollPosition > 0;
-    const canScrollRight = scrollPosition < tabs.scrollWidth - wrapper.clientWidth;
-
-    leftBtn.classList.toggle('visible', hasOverflow && canScrollLeft);
-    rightBtn.classList.toggle('visible', hasOverflow && canScrollRight);
-
-    // 如果没有溢出，居中显示；否则左对齐支持滚动
-    if (!hasOverflow) {
-        tabs.style.transform = 'translateX(0)';
-        tabs.style.margin = '0 auto';
-    } else {
-        tabs.style.margin = '0';
-        tabs.style.transform = `translateX(-${scrollPosition}px)`;
-    }
 }
 
 function selectCategory(categoryId) {
@@ -264,6 +215,8 @@ function selectCategory(categoryId) {
     localStorage.setItem('selectedCategory', categoryId);
     renderCategories();
     renderBookmarks();
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // 加载保存的分类选择
@@ -610,7 +563,13 @@ function openAddModal() {
     document.getElementById('bookmarkTitle').value = '';
     document.getElementById('bookmarkDesc').value = '';
     document.getElementById('bookmarkTags').value = '';
-    document.getElementById('bookmarkCategory').value = currentCategory !== 'all' ? currentCategory : '';
+    // 设置分类名称（而不是 ID）
+    if (currentCategory !== 'all') {
+        const category = data.categories.find(c => c.id === currentCategory);
+        document.getElementById('bookmarkCategory').value = category ? category.name : '';
+    } else {
+        document.getElementById('bookmarkCategory').value = '';
+    }
     document.getElementById('bookmarkModal').classList.add('active');
     // 光标自动定位到 URL 输入框
     setTimeout(() => {

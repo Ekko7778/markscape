@@ -176,10 +176,12 @@ function showToast(message, type = 'success') {
 // ========== 渲染分类 ==========
 function renderCategories() {
     const sidebar = document.getElementById('sidebar');
-    // 保留标题，清除其余内容
+    // 保留标题和新建分类按钮，清除其余内容
     const title = sidebar.querySelector('.sidebar-title');
+    const addBtn = document.getElementById('addCategoryBtn');
     sidebar.innerHTML = '';
     sidebar.appendChild(title);
+    sidebar.appendChild(addBtn);
 
     data.categories.forEach(cat => {
         const count = cat.id === 'all'
@@ -189,7 +191,7 @@ function renderCategories() {
         const item = document.createElement('button');
         item.className = `sidebar-item ${currentCategory === cat.id ? 'active' : ''}`;
         item.innerHTML = `
-            <i class="fas ${cat.icon}"></i>
+            <span class="sidebar-icon"><i class="fas ${cat.icon}"></i></span>
             <span class="sidebar-item-name">${cat.name}</span>
             <span class="sidebar-item-count">${count}</span>
         `;

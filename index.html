@@ -109,39 +109,34 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            height: 65px;
+            padding: 8px 8px 0 8px;
         }
 
         /* 顶部栏 */
         .header-top {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 12px 20px;
-            max-width: 100%;
-            margin: 0 auto;
+            gap: 12px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: none;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 700;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             color: var(--text-primary);
-            position: fixed;
-            top: 14px;
-            left: 24px;
-            z-index: 102;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
 
         .logo i {
             color: var(--accent);
-            font-size: 1.3rem;
+            font-size: 1.15rem;
         }
 
         .search-box {
@@ -151,9 +146,9 @@
 
         .search-box input {
             width: 100%;
-            padding: 10px 32px 10px 36px;
+            padding: 8px 32px 8px 34px;
             background: var(--bg-primary);
-            border: 1px solid var(--border);
+            border: none;
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 0.9rem;
@@ -161,7 +156,7 @@
         }
 
         .search-box input:focus {
-            border-color: var(--accent);
+            background: var(--bg-card);
         }
 
         .search-box input::placeholder {
@@ -220,52 +215,49 @@
         .actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
+            margin-left: auto;
         }
 
         /* 按钮分组 */
         .action-group {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
-        /* 数据操作组前加分隔线 */
+        /* 数据操作组 */
         .action-group.data-ops {
-            padding-left: 12px;
-            margin-left: 8px;
-            border-left: 1px solid var(--border);
+            margin-left: 4px;
         }
 
-        /* 次要操作组前加分隔线 */
+        /* 次要操作组 */
         .secondary-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding-left: 12px;
-            margin-left: 8px;
-            border-left: 1px solid var(--border);
+            gap: 4px;
+            margin-left: 4px;
         }
 
         .btn {
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 400;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
+            transition: all 0.15s;
             height: 36px;
         }
 
         .btn:hover {
-            background: var(--bg-card);
-            border-color: var(--border-hover);
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         .btn-primary {
@@ -288,54 +280,105 @@
         }
 
         .btn-icon:hover {
-            background: var(--bg-card);
-            border-color: var(--border-hover);
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         /* 危险操作图标按钮 */
         .btn-danger-icon:hover {
             background: rgba(239, 68, 68, 0.1);
-            border-color: #EF4444;
             color: #EF4444;
         }
 
-        /* 添加分类按钮 */
+        /* 添加分类按钮（侧边栏内） */
+        #addCategoryBtn {
+            border: 1px dashed var(--border);
+            margin-top: 4px;
+        }
+
         #addCategoryBtn:hover {
-            background: rgba(34, 197, 94, 0.1);
-            border-color: var(--accent);
+            background: rgba(34, 197, 94, 0.08);
+            border-color: rgba(34, 197, 94, 0.3);
             color: var(--accent);
         }
 
-        /* 主题切换按钮 - 最右边 */
+        /* 主题切换按钮 */
         .theme-toggle {
-            position: fixed;
-            top: 12px;
-            right: 20px;
-            z-index: 101;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             color: var(--text-secondary);
-            transition: all 0.2s;
+            transition: all 0.15s;
+            flex-shrink: 0;
         }
 
         .theme-toggle:hover {
+            background: var(--bg-primary);
+            color: var(--accent);
+        }
+
+        /* ========== 悬浮添加按钮 ========== */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
             background: var(--accent);
-            border-color: var(--accent);
             color: #fff;
-            transform: rotate(15deg);
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 90;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab-label {
+            position: absolute;
+            right: calc(100% + 10px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(4px);
+            transition: all 0.2s;
+        }
+
+        .fab:hover .fab-label {
+            opacity: 1;
+            transform: translateX(0);
         }
 
         /* ========== 整体布局 ========== */
         .layout {
             display: flex;
-            min-height: calc(100vh - 65px);
+            height: calc(100vh - 61px);
         }
 
         /* ========== 侧边栏 ========== */
@@ -343,15 +386,17 @@
             width: 220px;
             flex-shrink: 0;
             background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 16px 12px;
+            border-right: none;
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             overflow-y: auto;
             position: sticky;
             top: 65px;
             height: calc(100vh - 65px);
+            border-radius: 12px;
+            margin-left: 8px;
         }
 
         .sidebar-title {
@@ -360,26 +405,24 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 4px 12px 10px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 8px;
+            padding: 8px 10px 6px;
         }
 
         .sidebar-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 14px;
+            padding: 8px 10px;
             border-radius: 8px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
             font-size: 0.9rem;
-            font-weight: 700;
+            font-weight: 400;
             cursor: pointer;
             width: 100%;
             text-align: left;
-            transition: all 0.2s;
+            transition: all 0.15s;
             white-space: nowrap;
         }
 
@@ -393,11 +436,25 @@
             color: #fff;
         }
 
-        .sidebar-item i {
-            font-size: 0.85rem;
-            width: 18px;
-            text-align: center;
+        .sidebar-item .sidebar-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+            font-size: 0.7rem;
+            transition: background 0.15s;
+        }
+
+        .sidebar-item:hover .sidebar-icon {
+            background: var(--bg-card);
+        }
+
+        .sidebar-item.active .sidebar-icon {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .sidebar-item-name {
@@ -410,7 +467,7 @@
             font-size: 0.7rem;
             padding: 1px 7px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--border);
             flex-shrink: 0;
         }
 
@@ -1147,8 +1204,15 @@
 
         /* ========== 响应式 ========== */
         @media (max-width: 768px) {
-            .header-content {
+            .header {
+                padding: 4px;
+            }
+
+            .header-top {
                 flex-wrap: wrap;
+                gap: 6px;
+                padding: 8px;
+                border-radius: 8px;
             }
 
             .search-box {
@@ -1175,47 +1239,33 @@
                 height: auto;
                 flex-direction: row;
                 flex-wrap: wrap;
-                gap: 6px;
-                padding: 12px;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
+                gap: 4px;
+                padding: 8px;
+                border-radius: 0;
+                margin: 0;
             }
 
             .sidebar-title {
                 width: 100%;
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 4px;
             }
 
             .sidebar-item {
                 flex: 0 0 auto;
-                padding: 6px 12px;
+                padding: 6px 10px;
                 font-size: 0.85rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Logo 固定在左上角 -->
-    <div class="logo">
-        <i class="fas fa-bookmark"></i>
-        <span>书签管理器</span>
-    </div>
-
     <!-- 导航栏 -->
     <header class="header">
         <div class="header-top">
+            <div class="logo">
+                <i class="fas fa-bookmark"></i>
+                <span>书签管理器</span>
+            </div>
             <div class="actions">
-                <!-- 主要操作 -->
-                <button class="btn btn-primary" id="addBookmarkBtn">
-                    <i class="fas fa-plus"></i>
-                    <span>添加书签</span>
-                </button>
-                <button class="btn" id="addCategoryBtn">
-                    <i class="fas fa-folder-plus"></i>
-                    <span>新建分类</span>
-                </button>
                 <!-- 数据操作 -->
                 <div class="action-group data-ops">
                     <button class="btn" id="importBtn">
@@ -1251,6 +1301,10 @@
         <!-- 侧边栏 -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-title">分类</div>
+            <button class="sidebar-item" id="addCategoryBtn">
+                <span class="sidebar-icon"><i class="fas fa-plus"></i></span>
+                <span class="sidebar-item-name">新建分类</span>
+            </button>
             <!-- 侧边栏项目由JS动态生成 -->
         </aside>
 
@@ -1428,6 +1482,12 @@
             <span>删除分类</span>
         </div>
     </div>
+
+    <!-- 悬浮添加按钮 -->
+    <button class="fab" id="addBookmarkBtn" title="添加书签">
+        <i class="fas fa-plus"></i>
+        <span class="fab-label">添加书签</span>
+    </button>
 
     <script src="app.js"></script>
 </body>

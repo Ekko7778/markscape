@@ -290,7 +290,11 @@ function renderBookmarks() {
                 </div>
                 <div class="bookmark-info">
                     <div class="bookmark-title">${highlightText(bookmark.title, searchQuery)}</div>
-                    <div class="bookmark-url">${highlightText(bookmark.url, searchQuery)}</div>
+                    ${bookmark.tags?.length ? `
+                    <div class="bookmark-tags">
+                        ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
+                    </div>
+                    ` : ''}
                 </div>
                 <div class="bookmark-actions">
                     <button class="action-btn" onclick="event.stopPropagation(); editBookmark('${bookmark.id}')" title="编辑">
@@ -303,11 +307,7 @@ function renderBookmarks() {
             </div>
             <div class="bookmark-desc">${bookmark.description ? highlightText(bookmark.description, searchQuery) : ''}</div>
             <div class="bookmark-footer">
-                ${bookmark.tags?.length ? `
-                    <div class="bookmark-tags">
-                        ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
-                    </div>
-                ` : '<div class="bookmark-tags"></div>'}
+                <div class="bookmark-url">${highlightText(bookmark.url, searchQuery)}</div>
                 <button class="copy-btn" onclick="event.stopPropagation(); copyBookmarkUrl('${bookmark.url}', this)">
                     <i class="fas fa-copy"></i>
                     <span>复制</span>

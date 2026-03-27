@@ -543,8 +543,8 @@
         }
 
         .bookmark-icon {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 8px;
             background: var(--bg-secondary);
             display: flex;
@@ -554,13 +554,14 @@
         }
 
         .bookmark-icon img {
-            width: 20px;
-            height: 20px;
+            width: 28px;
+            height: 28px;
             border-radius: 4px;
+            image-rendering: auto;
         }
 
         .bookmark-icon i {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             color: var(--accent);
         }
 
@@ -615,13 +616,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 6px;
+            margin-top: auto;
             min-height: 20px;
         }
 
         .bookmark-tags {
-            flex: 0 1 auto;
-            max-width: calc(100% - 60px);
+            flex: 1;
             display: flex;
             flex-wrap: nowrap;
             overflow: hidden;

@@ -176,9 +176,10 @@ function showToast(message, type = 'success') {
 // ========== 渲染分类 ==========
 function renderCategories() {
     const sidebar = document.getElementById('sidebar');
-    // 保留标题和新建分类按钮，清除其余内容
+    // 保留标题、新建分类按钮和底部操作，清除其余内容
     const title = sidebar.querySelector('.sidebar-title');
     const addBtn = document.getElementById('addCategoryBtn');
+    const bottom = sidebar.querySelector('.sidebar-bottom');
     sidebar.innerHTML = '';
     sidebar.appendChild(title);
     sidebar.appendChild(addBtn);
@@ -207,6 +208,8 @@ function renderCategories() {
 
         sidebar.appendChild(item);
     });
+
+    sidebar.appendChild(bottom);
 
     updateCategorySelect();
 }
@@ -1578,6 +1581,15 @@ function bindEvents() {
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
             e.preventDefault();
             openAddModal();
+        }
+
+        // Ctrl/Cmd + Enter 快速保存书签
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            const modal = document.getElementById('bookmarkModal');
+            if (modal.classList.contains('active')) {
+                e.preventDefault();
+                saveBookmark();
+            }
         }
     });
 

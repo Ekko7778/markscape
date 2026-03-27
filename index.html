@@ -27,10 +27,11 @@
             --accent-hover: #16A34A;
             --border: rgba(255, 255, 255, 0.08);
             --border-hover: rgba(255, 255, 255, 0.15);
-            --glass-bg: rgba(15, 23, 42, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.1);
             --shadow: rgba(0, 0, 0, 0.3);
             --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            /* 磨砂玻璃 */
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         /* 浅色模式 */
@@ -44,10 +45,22 @@
             --text-muted: #94A3B8;
             --border: rgba(0, 0, 0, 0.08);
             --border-hover: rgba(0, 0, 0, 0.15);
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --shadow: rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+            /* 磨砂玻璃 */
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.08);
+        }
+
+
+
+        /* ========== 磨砂玻璃效果 ========== */
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 24px var(--shadow);
         }
 
         /* ========== 页面基础 ========== */
@@ -116,11 +129,10 @@
         .header-top {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
             padding: 8px 12px;
-            background: var(--bg-secondary);
             border-radius: 12px;
-            border: none;
         }
 
         .logo {
@@ -140,27 +152,35 @@
         }
 
         .search-box {
-            flex: 0 0 220px;
             position: relative;
+            flex: 1;
+            max-width: 360px;
+            margin: 0 auto;
         }
 
         .search-box input {
             width: 100%;
-            padding: 8px 32px 8px 34px;
-            background: var(--bg-primary);
-            border: none;
+            padding: 8px 32px 8px 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-hover);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 0.9rem;
             outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-box input:hover {
+            border-color: var(--text-muted);
         }
 
         .search-box input:focus {
-            background: var(--bg-card);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
         }
 
         .search-box input::placeholder {
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
 
         .search-box i {
@@ -168,8 +188,14 @@
             left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .search-box input:focus ~ i,
+        .search-box:hover i {
+            color: var(--accent);
         }
 
         .search-box .clear-btn {
@@ -203,40 +229,8 @@
             transform: translateY(-50%) scale(0.95);
         }
 
-        .search-box .clear-btn:hover {
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-
         .search-box .clear-btn.visible {
             display: flex;
-        }
-
-        .actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-left: auto;
-        }
-
-        /* 按钮分组 */
-        .action-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* 数据操作组 */
-        .action-group.data-ops {
-            margin-left: 4px;
-        }
-
-        /* 次要操作组 */
-        .secondary-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-left: 4px;
         }
 
         .btn {
@@ -385,8 +379,6 @@
         .sidebar {
             width: 220px;
             flex-shrink: 0;
-            background: var(--bg-secondary);
-            border-right: none;
             padding: 8px;
             display: flex;
             flex-direction: column;
@@ -475,6 +467,22 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .sidebar-bottom {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .sidebar-bottom .btn {
+            flex: 1;
+            justify-content: center;
+            font-size: 0.8rem;
+            padding: 6px 8px;
+            height: 32px;
+        }
+
         /* 右键菜单 */
         .context-menu {
             position: fixed;
@@ -530,10 +538,7 @@
         .main {
             flex: 1;
             min-width: 0;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            padding: 16px 24px 16px;
         }
 
         /* 卡片网格 */
@@ -1260,35 +1265,15 @@
 <body>
     <!-- 导航栏 -->
     <header class="header">
-        <div class="header-top">
+        <div class="header-top liquid-glass">
             <div class="logo">
                 <i class="fas fa-bookmark"></i>
                 <span>书签管理器</span>
             </div>
-            <div class="actions">
-                <!-- 数据操作 -->
-                <div class="action-group data-ops">
-                    <button class="btn" id="importBtn">
-                        <i class="fas fa-file-import"></i>
-                        <span>导入</span>
-                    </button>
-                    <button class="btn" id="exportBtn">
-                        <i class="fas fa-file-export"></i>
-                        <span>导出</span>
-                    </button>
-                </div>
-                <!-- 次要操作（分隔线后） -->
-                <div class="action-group secondary-actions">
-                    <button class="btn btn-icon btn-danger-icon" id="clearAllBtn" title="清空所有书签">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <!-- 搜索框 -->
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="搜索书签...">
-                    <button class="clear-btn" id="clearSearchBtn" title="清空搜索">×</button>
-                </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索书签...">
+                <button class="clear-btn" id="clearSearchBtn" title="清空搜索">×</button>
             </div>
             <button class="btn btn-icon theme-toggle" id="themeToggle" title="切换主题">
                 <i class="fas fa-moon"></i>
@@ -1299,13 +1284,27 @@
     <!-- 布局容器：侧边栏 + 主内容 -->
     <div class="layout">
         <!-- 侧边栏 -->
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar liquid-glass" id="sidebar">
             <div class="sidebar-title">分类</div>
             <button class="sidebar-item" id="addCategoryBtn">
                 <span class="sidebar-icon"><i class="fas fa-plus"></i></span>
                 <span class="sidebar-item-name">新建分类</span>
             </button>
             <!-- 侧边栏项目由JS动态生成 -->
+            <!-- 底部操作 -->
+            <div class="sidebar-bottom">
+                <button class="btn" id="importBtn">
+                    <i class="fas fa-file-import"></i>
+                    <span>导入</span>
+                </button>
+                <button class="btn" id="exportBtn">
+                    <i class="fas fa-file-export"></i>
+                    <span>导出</span>
+                </button>
+                <button class="btn btn-danger-icon" id="clearAllBtn" title="清空所有书签">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
         </aside>
 
         <!-- 主内容区 -->

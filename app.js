@@ -428,6 +428,8 @@ function saveFaviconCache(cache) {
 // 图标服务列表
 function getFaviconServices(hostname) {
     return [
+        `https://favicone.com/${hostname}?s=128`,
+        `https://favicon.im/${hostname}`,
         `https://icon.horse/icon/${hostname}`,
         `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
         `https://${hostname}/favicon.ico`,
@@ -552,8 +554,47 @@ function initFaviconTimeouts() {
     });
 }
 
+// CORS 代理列表
+const CORS_PROXIES = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+];
+
+// 从页面 HTML 中提取 favicon
+async function fetchFaviconFromPage(url) {
+    for (const makeProxyUrl of CORS_PROXIES) {
+        try {
+            const response = await fetch(makeProxyUrl(url), { signal: AbortSignal.timeout(5000) });
+            if (!response.ok) continue;
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const selectors = [
+                'link[rel="icon"][type="image/svg+xml"]',
+                'link[rel="icon"]',
+                'link[rel="shortcut icon"]',
+                'link[rel="apple-touch-icon"]'
+            ];
+
+            for (const selector of selectors) {
+                const link = doc.querySelector(selector);
+                if (link?.href) {
+                    const href = link.getAttribute('href');
+                    if (!href) continue;
+                    if (href.startsWith('data:')) return href;
+                    return new URL(href, url).href;
+                }
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    return null;
+}
+
 // 刷新单个书签的图标
-function refreshFavicon(bookmarkId, btn) {
+async function refreshFavicon(bookmarkId, btn) {
     const bookmark = data.bookmarks.find(b => b.id === bookmarkId);
     if (!bookmark) return;
 
@@ -571,17 +612,38 @@ function refreshFavicon(bookmarkId, btn) {
     // 旋转动画
     const icon = btn.querySelector('i');
     icon.classList.add('fa-spin');
-    setTimeout(() => icon.classList.remove('fa-spin'), 1000);
 
-    // 重新渲染图标区域
+    // 先尝试从页面 HTML 提取 favicon
+    const pageFavicon = await fetchFaviconFromPage(bookmark.url);
+
+    if (pageFavicon) {
+        const isValid = await new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            setTimeout(() => resolve(false), 3000);
+            img.src = pageFavicon;
+        });
+
+        if (isValid) {
+            bookmark.favicon = pageFavicon;
+            saveData();
+            icon.classList.remove('fa-spin');
+
+            const iconContainer = btn.closest('.bookmark-icon');
+            const newHtml = getFavicon(bookmark);
+            iconContainer.innerHTML = newHtml + btn.outerHTML;
+            showToast('图标已刷新');
+            return;
+        }
+    }
+
+    // 页面提取失败，回退到图标服务
+    icon.classList.remove('fa-spin');
     const iconContainer = btn.closest('.bookmark-icon');
     const newHtml = getFavicon(bookmark);
-    // 保留刷新按钮
     iconContainer.innerHTML = newHtml + btn.outerHTML;
-
-    // 重新初始化超时
     initFaviconTimeouts();
-
     showToast('图标已刷新');
 }
 

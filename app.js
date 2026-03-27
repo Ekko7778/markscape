@@ -176,13 +176,11 @@ function showToast(message, type = 'success') {
 // ========== 渲染分类 ==========
 function renderCategories() {
     const sidebar = document.getElementById('sidebar');
-    // 保留标题、新建分类按钮和底部操作，清除其余内容
+    // 保留标题（含新建分类按钮）和底部操作，清除其余内容
     const title = sidebar.querySelector('.sidebar-title');
-    const addBtn = document.getElementById('addCategoryBtn');
     const bottom = sidebar.querySelector('.sidebar-bottom');
     sidebar.innerHTML = '';
     sidebar.appendChild(title);
-    sidebar.appendChild(addBtn);
 
     data.categories.forEach(cat => {
         const count = cat.id === 'all'

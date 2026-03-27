@@ -6,6 +6,10 @@
     <title>书签管理器</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // 在页面渲染前应用主题，防止闪屏
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    </script>
     <style>
         /* ========== 基础重置 ========== */
         * {
@@ -139,11 +143,15 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 700;
-            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .logo h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
             color: var(--text-primary);
             letter-spacing: 0.5px;
-            flex-shrink: 0;
+            margin: 0;
         }
 
         .logo i {
@@ -284,18 +292,6 @@
             color: #EF4444;
         }
 
-        /* 添加分类按钮（侧边栏内） */
-        #addCategoryBtn {
-            border: 1px dashed var(--border);
-            margin-top: 4px;
-        }
-
-        #addCategoryBtn:hover {
-            background: rgba(34, 197, 94, 0.08);
-            border-color: rgba(34, 197, 94, 0.3);
-            color: var(--accent);
-        }
-
         /* 主题切换按钮 */
         .theme-toggle {
             background: transparent;
@@ -392,12 +388,34 @@
         }
 
         .sidebar-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
             padding: 8px 10px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .sidebar-title-btn:hover {
+            background: var(--accent);
+            color: #fff;
         }
 
         .sidebar-item {
@@ -1268,7 +1286,7 @@
         <div class="header-top liquid-glass">
             <div class="logo">
                 <i class="fas fa-bookmark"></i>
-                <span>书签管理器</span>
+                <h3>书签管理器</h3>
             </div>
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -1285,11 +1303,12 @@
     <div class="layout">
         <!-- 侧边栏 -->
         <aside class="sidebar liquid-glass" id="sidebar">
-            <div class="sidebar-title">分类</div>
-            <button class="sidebar-item" id="addCategoryBtn">
-                <span class="sidebar-icon"><i class="fas fa-plus"></i></span>
-                <span class="sidebar-item-name">新建分类</span>
-            </button>
+            <div class="sidebar-title">
+                <span>分类</span>
+                <button class="sidebar-title-btn" id="addCategoryBtn" title="新建分类">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
             <!-- 侧边栏项目由JS动态生成 -->
             <!-- 底部操作 -->
             <div class="sidebar-bottom">
@@ -1483,7 +1502,7 @@
     </div>
 
     <!-- 悬浮添加按钮 -->
-    <button class="fab" id="addBookmarkBtn" title="添加书签">
+    <button class="fab" id="addBookmarkBtn">
         <i class="fas fa-plus"></i>
         <span class="fab-label">添加书签</span>
     </button>

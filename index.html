@@ -475,13 +475,18 @@
             flex: 1;
             min-width: 0;
             padding: 16px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
         /* 卡片网格 */
         .bookmarks-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
+            gap: 8px;
+            width: 100%;
+            max-width: 1400px;
         }
 
         /* 书签卡片动画 */

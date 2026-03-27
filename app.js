@@ -426,10 +426,10 @@ function saveFaviconCache(cache) {
 // 图标服务列表
 function getFaviconServices(hostname) {
     return [
-        `https://${hostname}/favicon.ico`,
-        `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`,
+        `https://icon.horse/icon/${hostname}`,
+        `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
         `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
-        `https://icon.horse/icon/${hostname}`
+        `https://${hostname}/favicon.ico`
     ];
 }
 

@@ -742,25 +742,80 @@
         .empty-state {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            padding: 24px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 400px;
+            padding: 80px 24px;
             color: var(--text-muted);
+            text-align: center;
         }
 
-        .empty-state i {
+        .empty-state .empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .empty-state .empty-icon:hover {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: rgba(34, 197, 94, 0.5);
+            transform: scale(1.05);
+        }
+
+        .empty-state .empty-icon i {
             font-size: 2rem;
-            margin-bottom: 12px;
-            opacity: 0.4;
+            color: var(--accent);
+            transition: opacity 0.2s;
         }
 
-        .empty-state p {
-            font-size: 0.95rem;
-            margin-bottom: 16px;
-            color: var(--text-secondary);
+        .empty-state .empty-icon:hover i {
+            opacity: 0;
+        }
+
+        .empty-state .empty-icon::after {
+            content: '\f067';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--accent);
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .empty-state .empty-icon:hover::after {
+            opacity: 1;
+        }
+
+        .empty-state .empty-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .empty-state .empty-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+            text-align: center;
         }
 
         .empty-state .btn {
-            margin-top: 4px;
+            padding: 10px 24px;
+            border-radius: 10px;
         }
 
         /* ========== 模态框 ========== */
@@ -1207,12 +1262,11 @@
                 <!-- 书签卡片由JS动态生成 -->
             </div>
             <div class="empty-state" id="emptyState" style="display: none;">
-                <i class="fas fa-bookmark"></i>
-                <p>暂无书签</p>
-                <button class="btn btn-primary" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i>
-                    添加第一个书签
-                </button>
+                <div class="empty-icon" onclick="openAddModal()" title="添加书签">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <div class="empty-title">暂无书签</div>
+                <div class="empty-desc">点击图标，开始收藏你常用的网站</div>
             </div>
         </main>
     </div>

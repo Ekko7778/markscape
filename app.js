@@ -272,7 +272,7 @@ function renderBookmarks() {
     // 显示空状态或书签列表
     if (bookmarks.length === 0) {
         container.style.display = 'none';
-        emptyState.style.display = 'block';
+        emptyState.style.display = 'flex';
         return;
     }
 

@@ -285,16 +285,18 @@ function renderBookmarks() {
              data-id="${bookmark.id}"
              onclick="openBookmark('${bookmark.url}')">
             <div class="bookmark-header">
-                <div class="bookmark-icon">
+                <div class="bookmark-icon" title="右键刷新图标">
                     ${getFavicon(bookmark)}
+                    <button class="favicon-refresh" onclick="event.stopPropagation(); refreshFavicon('${bookmark.id}', this)" title="刷新图标">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="bookmark-info">
                     <div class="bookmark-title">${highlightText(bookmark.title, searchQuery)}</div>
-                    ${bookmark.tags?.length ? `
                     <div class="bookmark-tags">
-                        ${bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('')}
+                        ${(() => { const cat = data.categories.find(c => c.id === bookmark.categoryId && c.id !== 'all'); return cat ? `<span class="bookmark-tag category-tag">${highlightText(cat.name, searchQuery)}</span>` : ''; })()}
+                        ${bookmark.tags?.length ? bookmark.tags.map(tag => `<span class="bookmark-tag">${highlightText(tag, searchQuery)}</span>`).join('') : ''}
                     </div>
-                    ` : ''}
                 </div>
                 <div class="bookmark-actions">
                     <button class="action-btn" onclick="event.stopPropagation(); editBookmark('${bookmark.id}')" title="编辑">
@@ -550,6 +552,39 @@ function initFaviconTimeouts() {
     });
 }
 
+// 刷新单个书签的图标
+function refreshFavicon(bookmarkId, btn) {
+    const bookmark = data.bookmarks.find(b => b.id === bookmarkId);
+    if (!bookmark) return;
+
+    // 清空书签的 favicon 缓存
+    bookmark.favicon = '';
+
+    // 清空 localStorage 中该域名的缓存
+    const hostname = new URL(bookmark.url).hostname;
+    const cache = getFaviconCache();
+    delete cache[hostname];
+    saveFaviconCache(cache);
+
+    saveData();
+
+    // 旋转动画
+    const icon = btn.querySelector('i');
+    icon.classList.add('fa-spin');
+    setTimeout(() => icon.classList.remove('fa-spin'), 1000);
+
+    // 重新渲染图标区域
+    const iconContainer = btn.closest('.bookmark-icon');
+    const newHtml = getFavicon(bookmark);
+    // 保留刷新按钮
+    iconContainer.innerHTML = newHtml + btn.outerHTML;
+
+    // 重新初始化超时
+    initFaviconTimeouts();
+
+    showToast('图标已刷新');
+}
+
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -557,6 +592,14 @@ function escapeHtml(text) {
 }
 
 // ========== 书签操作 ==========
+
+// 清空分类输入框
+function clearCategoryInput() {
+    const input = document.getElementById('bookmarkCategory');
+    input.value = '';
+    input.focus();
+}
+
 function openAddModal() {
     editingBookmarkId = null;
     document.getElementById('modalTitle').textContent = '添加书签';
@@ -1382,23 +1425,6 @@ function bindEvents() {
                 url = 'https://' + url;
             }
             window.open(url, '_blank');
-        }
-    });
-
-    // 分类输入框变化时，自动添加分类名称到标签
-    document.getElementById('bookmarkCategory')?.addEventListener('change', (e) => {
-        const categoryName = e.target.value.trim();
-        const tagsInput = document.getElementById('bookmarkTags');
-        if (!tagsInput) return;
-
-        const currentTags = tagsInput.value;
-
-        // 如果有分类名称，且标签中没有这个分类，自动添加
-        if (categoryName) {
-            const tags = currentTags.split(',').map(t => t.trim()).filter(t => t);
-            if (!tags.includes(categoryName)) {
-                tagsInput.value = categoryName + (currentTags ? ', ' + currentTags : '');
-            }
         }
     });
 

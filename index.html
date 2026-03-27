@@ -558,6 +558,31 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        .favicon-refresh {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .bookmark-icon:hover .favicon-refresh {
+            opacity: 1;
+        }
+
+        .favicon-refresh:hover {
+            background: rgba(34, 197, 94, 0.5);
         }
 
         .bookmark-icon img {
@@ -617,6 +642,13 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             display: inline-block;
+        }
+
+        .bookmark-tag.category-tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            max-width: none;
+            overflow: visible;
         }
 
         .bookmark-footer {
@@ -868,7 +900,30 @@
 
         .custom-select input {
             width: 100%;
-            padding-right: 36px;
+            padding-right: 60px;
+        }
+
+        .clear-category-btn {
+            position: absolute;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 0.75rem;
+            display: none;
+            z-index: 1;
+        }
+
+        .clear-category-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .custom-select input:not(:placeholder-shown) ~ .clear-category-btn {
+            display: block;
         }
 
         .custom-select .dropdown-icon {
@@ -1193,6 +1248,9 @@
                     <label>分类</label>
                     <div class="custom-select" id="categorySelect">
                         <input type="text" id="bookmarkCategory" placeholder="选择或输入分类名称" autocomplete="off">
+                        <button type="button" class="clear-category-btn" id="clearCategoryBtn" onclick="clearCategoryInput()" title="清空分类">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <i class="fas fa-chevron-down dropdown-icon"></i>
                         <div class="custom-select-dropdown" id="categoryDropdown">
                             <!-- 由JS动态生成 -->

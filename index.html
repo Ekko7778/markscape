@@ -1277,6 +1277,30 @@
         </div>
     </div>
 
+    <!-- 导出格式选择模态框 -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>选择导出格式</h2>
+                <button class="modal-close" onclick="closeExportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="display: flex; gap: 16px; padding-top: 8px;">
+                <button class="btn" onclick="doExport('json')" style="flex: 1; flex-direction: column; height: auto; padding: 20px; gap: 10px;">
+                    <i class="fas fa-file-code" style="font-size: 1.8rem; color: #F59E0B;"></i>
+                    <span style="font-weight: 600;">JSON</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">完整数据，可再导入</span>
+                </button>
+                <button class="btn" onclick="doExport('html')" style="flex: 1; flex-direction: column; height: auto; padding: 20px; gap: 10px;">
+                    <i class="fas fa-file-alt" style="font-size: 1.8rem; color: #3B82F6;"></i>
+                    <span style="font-weight: 600;">HTML</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">浏览器书签格式</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 隐藏的文件输入 -->
     <input type="file" id="importInput" accept=".json,.html" style="display: none;">
 

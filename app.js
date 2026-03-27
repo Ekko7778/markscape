@@ -734,7 +734,14 @@ function saveBookmark() {
         }
         showToast('书签已更新', 'success');
     } else {
-        // 添加模式
+        // 添加模式 - URL 去重检测
+        const normalizedUrl = url.replace(/\/+$/, '');
+        const exists = data.bookmarks.some(b => b.url.replace(/\/+$/, '') === normalizedUrl);
+        if (exists) {
+            showToast('该网址已存在，无需重复添加', 'warning');
+            return;
+        }
+
         const newBookmark = {
             id: Date.now().toString(),
             url,
@@ -973,18 +980,105 @@ function clearAllBookmarks() {
 
 // ========== 导入导出 ==========
 function exportData() {
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // 打开导出格式选择模态框
+    document.getElementById('exportModal').classList.add('active');
+}
 
+function closeExportModal() {
+    document.getElementById('exportModal').classList.remove('active');
+}
+
+function doExport(format) {
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    if (format === 'json') {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        downloadBlob(blob, `bookmarks_${dateStr}.json`);
+        showToast('JSON 导出成功', 'success');
+    } else if (format === 'html') {
+        const html = generateBookmarkHtml();
+        const blob = new Blob([html], { type: 'text/html' });
+        downloadBlob(blob, `bookmarks_${dateStr}.html`);
+        showToast('HTML 导出成功', 'success');
+    }
+
+    closeExportModal();
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bookmarks_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click();
-
     URL.revokeObjectURL(url);
-    showToast('数据导出成功', 'success');
 }
+
+function generateBookmarkHtml() {
+    const date = new Date().toISOString();
+
+    // 按分类组织书签
+    const categoryMap = {};
+    data.categories.forEach(cat => {
+        if (cat.id !== 'all') {
+            categoryMap[cat.id] = { id: cat.id, name: cat.name, icon: cat.icon, bookmarks: [] };
+        }
+    });
+
+    data.bookmarks.forEach(b => {
+        const catId = b.categoryId || '';
+        if (categoryMap[catId]) {
+            categoryMap[catId].bookmarks.push(b);
+        } else {
+            if (!categoryMap['_uncategorized']) {
+                categoryMap['_uncategorized'] = { id: '', name: '未分类', icon: 'fa-folder', bookmarks: [] };
+            }
+            categoryMap['_uncategorized'].bookmarks.push(b);
+        }
+    });
+
+    let foldersHtml = '';
+    for (const [catId, cat] of Object.entries(categoryMap)) {
+        if (cat.bookmarks.length === 0) continue;
+
+        let linksHtml = '';
+        cat.bookmarks.forEach(b => {
+            const iconAttr = b.favicon && b.favicon !== 'failed' ? ` ICON="${escapeHtml(b.favicon)}"` : '';
+            const tagsAttr = b.tags && b.tags.length > 0 ? ` TAGS="${escapeHtml(b.tags.join(','))}"` : '';
+            const descAttr = b.description ? ` DESCRIPTION="${escapeHtml(b.description)}"` : '';
+            const faviconAttr = b.favicon && b.favicon !== 'failed' ? ` FAVICON="${escapeHtml(b.favicon)}"` : '';
+            linksHtml += `        <DT><A HREF="${escapeHtml(b.url)}"${iconAttr}${tagsAttr}${descAttr}${faviconAttr}>${escapeHtml(b.title)}</A>\n`;
+            if (b.description) {
+                linksHtml += `        <DD>${escapeHtml(b.description)}\n`;
+            }
+        });
+
+        foldersHtml += `    <DT><H3 CAT_ID="${escapeHtml(cat.id)}" CAT_ICON="${escapeHtml(cat.icon)}">${escapeHtml(cat.name)}</H3>\n    <DL>\n${linksHtml}    </DL>\n`;
+    }
+
+    // 在 HTML 注释中嵌入完整 JSON 数据，确保导入时能还原所有元数据
+    const jsonBackup = JSON.stringify(data);
+
+    return `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file by 书签管理器. -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<!-- BOOKMARK_MANAGER_DATA_START
+${btoa(unescape(encodeURIComponent(jsonBackup)))}
+BOOKMARK_MANAGER_DATA_END -->
+<DL>
+${foldersHtml}</DL>
+`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 
 function importData(file) {
     const reader = new FileReader();
@@ -993,33 +1087,68 @@ function importData(file) {
 
         // 判断文件类型
         if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
-            // 浏览器书签 HTML 格式
+            // 优先检查是否为本应用导出的 HTML（包含嵌入 JSON）
+            const embedMatch = content.match(/BOOKMARK_MANAGER_DATA_START\n([\s\S]*?)\nBOOKMARK_MANAGER_DATA_END/);
+            if (embedMatch) {
+                try {
+                    const jsonStr = decodeURIComponent(escape(atob(embedMatch[1].trim())));
+                    const imported = JSON.parse(jsonStr);
+                    if (imported.categories && imported.bookmarks) {
+                        importJsonWithDedup(imported);
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('嵌入数据解析失败，回退到标准书签解析', err);
+                }
+            }
+            // 标准浏览器书签 HTML 格式
             importBrowserBookmarks(content);
         } else {
             // JSON 格式
             try {
                 const imported = JSON.parse(content);
-
-                // 验证数据结构
                 if (!imported.categories || !imported.bookmarks) {
                     showToast('无效的书签文件格式', 'error');
                     return;
                 }
-
-                if (confirm('导入将覆盖现有数据，确定继续吗？')) {
-                    data = imported;
-                    saveData();
-                    currentCategory = 'all';
-                    renderCategories();
-                    renderBookmarks();
-                    showToast('数据导入成功', 'success');
-                }
+                importJsonWithDedup(imported);
             } catch (err) {
                 showToast('文件解析失败', 'error');
             }
         }
     };
     reader.readAsText(file);
+}
+
+// JSON 数据导入（支持去重合并）
+function importJsonWithDedup(imported) {
+    if (confirm('是否合并到现有数据？\n（选择"取消"将覆盖现有数据）')) {
+        // 合并模式 - URL 去重
+        const existingUrls = new Set(data.bookmarks.map(b => b.url.replace(/\/+$/, '')));
+        const newBookmarks = imported.bookmarks.filter(b => !existingUrls.has(b.url.replace(/\/+$/, '')));
+        const skippedCount = imported.bookmarks.length - newBookmarks.length;
+
+        // 合并分类（避免重复）
+        const existingCatNames = new Set(data.categories.map(c => c.name.toLowerCase()));
+        const newCategories = imported.categories.filter(c => c.id === 'all' || !existingCatNames.has(c.name.toLowerCase()));
+
+        data.categories = [...data.categories, ...newCategories];
+        data.bookmarks = [...newBookmarks, ...data.bookmarks];
+
+        const msg = skippedCount > 0
+            ? `成功导入 ${newBookmarks.length} 个书签（跳过 ${skippedCount} 个重复）`
+            : `成功导入 ${newBookmarks.length} 个书签`;
+        showToast(msg, 'success');
+    } else {
+        // 覆盖模式
+        data = imported;
+        showToast('数据导入成功（已覆盖）', 'success');
+    }
+
+    saveData();
+    currentCategory = 'all';
+    renderCategories();
+    renderBookmarks();
 }
 
 // 导入浏览器书签 HTML（支持文件夹结构）
@@ -1132,10 +1261,18 @@ function importBrowserBookmarks(html) {
         : `发现 ${bookmarkCount} 个书签，是否合并到现有数据？\n（选择"取消"将覆盖现有数据）`;
 
     if (confirm(message)) {
-        // 合并模式
+        // 合并模式 - URL 去重
+        const existingUrls = new Set(data.bookmarks.map(b => b.url.replace(/\/+$/, '')));
+        const newBookmarks = importedBookmarks.filter(b => !existingUrls.has(b.url.replace(/\/+$/, '')));
+        const skippedCount = importedBookmarks.length - newBookmarks.length;
+
         data.categories = [...data.categories, ...importedCategories];
-        data.bookmarks = [...importedBookmarks, ...data.bookmarks];
-        showToast(`成功导入 ${bookmarkCount} 个书签，${folderCount} 个分类`, 'success');
+        data.bookmarks = [...newBookmarks, ...data.bookmarks];
+
+        const msg = skippedCount > 0
+            ? `成功导入 ${newBookmarks.length} 个书签，${folderCount} 个分类（跳过 ${skippedCount} 个重复）`
+            : `成功导入 ${newBookmarks.length} 个书签，${folderCount} 个分类`;
+        showToast(msg, 'success');
     } else {
         // 覆盖模式（保留默认分类）
         const defaultCategories = data.categories.filter(c => c.isDefault);

@@ -460,7 +460,7 @@ function getFavicon(bookmark) {
     // 如果缓存中有记录，直接使用对应的服务
     const startIndex = typeof cachedIndex === 'number' ? cachedIndex : 0;
 
-    return `<img src="${faviconServices[startIndex]}" alt=""
+    return `<img src="${faviconServices[startIndex]}" alt="" crossorigin="anonymous"
                 onerror="window.tryNextFavicon(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
                 onload="window.onFaviconLoad(this, ${startIndex}, '${hostname}', '${bookmark.id}')"
                 data-favicon-index="${startIndex}"
@@ -472,7 +472,7 @@ function getFavicon(bookmark) {
 // 超时时间：1.5秒
 const FAVICON_TIMEOUT = 1500;
 
-// 图标加载成功 - 保存到缓存和书签数据
+// 图标加载成功 - 保存到缓存和书签数据（转为 data URI 永久存储）
 window.onFaviconLoad = function(img, currentIndex, hostname, bookmarkId) {
     // 清除定时器
     if (img.faviconTimer) {
@@ -480,16 +480,27 @@ window.onFaviconLoad = function(img, currentIndex, hostname, bookmarkId) {
         img.faviconTimer = null;
     }
 
-    // 保存到缓存
+    // 保存到服务索引缓存
     const cache = getFaviconCache();
     cache[hostname] = currentIndex;
     saveFaviconCache(cache);
 
-    // 保存图标URL 到书签数据
-    const faviconServices = getFaviconServices(hostname);
+    // 转为 data URI 永久存储，刷新页面无需重新请求
     const bookmark = data.bookmarks.find(b => b.id === bookmarkId);
     if (bookmark && !bookmark.favicon) {
-        bookmark.favicon = faviconServices[currentIndex];
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || 32;
+            canvas.height = img.naturalHeight || 32;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUri = canvas.toDataURL('image/png');
+            bookmark.favicon = dataUri;
+        } catch (e) {
+            // canvas 跨域限制，回退到 URL 存储
+            const faviconServices = getFaviconServices(hostname);
+            bookmark.favicon = faviconServices[currentIndex];
+        }
         saveData();
     }
 };
@@ -617,16 +628,30 @@ async function refreshFavicon(bookmarkId, btn) {
     const pageFavicon = await fetchFaviconFromPage(bookmark.url);
 
     if (pageFavicon) {
-        const isValid = await new Promise(resolve => {
+        const imgResult = await new Promise(resolve => {
             const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            setTimeout(() => resolve(false), 3000);
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            setTimeout(() => resolve(null), 3000);
             img.src = pageFavicon;
         });
 
-        if (isValid) {
-            bookmark.favicon = pageFavicon;
+        if (imgResult) {
+            // 转为 data URI 永久存储
+            if (pageFavicon.startsWith('data:')) {
+                bookmark.favicon = pageFavicon;
+            } else {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgResult.naturalWidth || 32;
+                    canvas.height = imgResult.naturalHeight || 32;
+                    canvas.getContext('2d').drawImage(imgResult, 0, 0, canvas.width, canvas.height);
+                    bookmark.favicon = canvas.toDataURL('image/png');
+                } catch (e) {
+                    bookmark.favicon = pageFavicon;
+                }
+            }
             saveData();
             icon.classList.remove('fa-spin');
 
@@ -1233,9 +1258,9 @@ function importJsonWithDedup(imported) {
         const newBookmarks = imported.bookmarks.filter(b => !existingUrls.has(b.url.replace(/\/+$/, '')));
         const skippedCount = imported.bookmarks.length - newBookmarks.length;
 
-        // 合并分类（避免重复）
+        // 合并分类（避免重复，跳过 'all' 默认分类）
         const existingCatNames = new Set(data.categories.map(c => c.name.toLowerCase()));
-        const newCategories = imported.categories.filter(c => c.id === 'all' || !existingCatNames.has(c.name.toLowerCase()));
+        const newCategories = imported.categories.filter(c => c.id !== 'all' && !c.isDefault && !existingCatNames.has(c.name.toLowerCase()));
 
         data.categories = [...data.categories, ...newCategories];
         data.bookmarks = [...newBookmarks, ...data.bookmarks];
@@ -1245,8 +1270,14 @@ function importJsonWithDedup(imported) {
             : `成功导入 ${newBookmarks.length} 个书签`;
         showToast(msg, 'success');
     } else {
-        // 覆盖模式
-        data = imported;
+        // 覆盖模式 - 确保只有一个 'all' 默认分类
+        data = {
+            categories: (() => {
+                const filtered = imported.categories.filter(c => c.id !== 'all' && !c.isDefault);
+                return [{ id: 'all', name: '全部', icon: 'fa-layer-group', isDefault: true }, ...filtered];
+            })(),
+            bookmarks: imported.bookmarks
+        };
         showToast('数据导入成功（已覆盖）', 'success');
     }
 
@@ -1371,12 +1402,17 @@ function importBrowserBookmarks(html) {
         const newBookmarks = importedBookmarks.filter(b => !existingUrls.has(b.url.replace(/\/+$/, '')));
         const skippedCount = importedBookmarks.length - newBookmarks.length;
 
-        data.categories = [...data.categories, ...importedCategories];
+        // 合并分类（去重）
+        const existingCatNames = new Set(data.categories.map(c => c.name.toLowerCase()));
+        const dedupedCategories = importedCategories.filter(c => !existingCatNames.has(c.name.toLowerCase()));
+
+        data.categories = [...data.categories, ...dedupedCategories];
         data.bookmarks = [...newBookmarks, ...data.bookmarks];
 
+        const mergedFolderCount = dedupedCategories.length;
         const msg = skippedCount > 0
-            ? `成功导入 ${newBookmarks.length} 个书签，${folderCount} 个分类（跳过 ${skippedCount} 个重复）`
-            : `成功导入 ${newBookmarks.length} 个书签，${folderCount} 个分类`;
+            ? `成功导入 ${newBookmarks.length} 个书签，${mergedFolderCount} 个分类（跳过 ${skippedCount} 个重复）`
+            : `成功导入 ${newBookmarks.length} 个书签，${mergedFolderCount} 个分类`;
         showToast(msg, 'success');
     } else {
         // 覆盖模式（保留默认分类）

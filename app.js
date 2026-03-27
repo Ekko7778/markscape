@@ -189,8 +189,9 @@ function renderCategories() {
 
         const item = document.createElement('button');
         item.className = `sidebar-item ${currentCategory === cat.id ? 'active' : ''}`;
+        const colorStyle = cat.color ? `background:${cat.color}22;color:${cat.color}` : '';
         item.innerHTML = `
-            <span class="sidebar-icon"><i class="fas ${cat.icon}"></i></span>
+            <span class="sidebar-icon"${cat.color ? ` style="${colorStyle}"` : ''}><i class="fas ${cat.icon}"></i></span>
             <span class="sidebar-item-name">${cat.name}</span>
             <span class="sidebar-item-count">${count}</span>
         `;
@@ -951,13 +952,116 @@ function closeModal() {
 // ========== 分类操作 ==========
 let editingCategoryId = null;
 
+// 图标分组
+const iconGroups = [
+    { title: '常用', icons: ['fa-folder', 'fa-star', 'fa-heart', 'fa-bookmark', 'fa-tag', 'fa-link'] },
+    { title: 'AI & 编程', icons: ['fa-robot', 'fa-brain', 'fa-code', 'fa-terminal', 'fa-microchip', 'fa-database', 'fa-code-branch', 'fa-bug'] },
+    { title: '网络 & 科技', icons: ['fa-globe', 'fa-cloud', 'fa-server', 'fa-wifi', 'fa-satellite-dish', 'fa-network-wired', 'fa-shield-alt', 'fa-lock'] },
+    { title: '品牌', icons: ['fab fa-github', 'fab fa-chrome', 'fab fa-docker', 'fab fa-python', 'fab fa-js', 'fab fa-react', 'fab fa-linux', 'fab fa-apple'] },
+    { title: '社交 & 通讯', icons: ['fab fa-weixin', 'fab fa-qq', 'fab fa-discord', 'fab fa-telegram', 'fa-envelope', 'fa-comment', 'fa-bell'] },
+    { title: '工作 & 学习', icons: ['fa-briefcase', 'fa-graduation-cap', 'fa-chart-line', 'fa-tasks', 'fa-book', 'fa-flask'] },
+    { title: '生活 & 其他', icons: ['fa-gamepad', 'fa-music', 'fa-camera', 'fa-shopping-cart', 'fa-credit-card', 'fa-coffee', 'fa-palette'] },
+];
+
+const presetColors = ['#22C55E', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444', '#06B6D4', '#64748B'];
+
+function renderIconGrid(selectedIcon) {
+    const grid = document.getElementById('iconGrid');
+    grid.innerHTML = '';
+
+    iconGroups.forEach(group => {
+        const title = document.createElement('div');
+        title.className = 'icon-section-title';
+        title.textContent = group.title;
+        grid.appendChild(title);
+
+        group.icons.forEach(iconClass => {
+            const item = document.createElement('div');
+            item.className = 'icon-item' + (iconClass === selectedIcon ? ' selected' : '');
+            item.dataset.icon = iconClass;
+            const prefix = iconClass.startsWith('fab') ? '' : 'fas ';
+            item.innerHTML = `<i class="${prefix}${iconClass}"></i>`;
+            item.onclick = () => selectIcon(iconClass);
+            grid.appendChild(item);
+        });
+    });
+}
+
+function renderColorOptions(selectedColor) {
+    const container = document.getElementById('colorOptions');
+    container.innerHTML = '';
+
+    presetColors.forEach(color => {
+        const dot = document.createElement('div');
+        dot.className = 'color-dot' + (color === selectedColor ? ' active' : '');
+        dot.style.backgroundColor = color;
+        dot.dataset.color = color;
+        dot.style.color = color;
+        dot.onclick = () => selectColor(color);
+        container.appendChild(dot);
+    });
+
+    // 自定义颜色 input 事件
+    document.getElementById('colorCustom').oninput = (e) => {
+        selectColor(e.target.value);
+    };
+}
+
+function selectIcon(iconClass) {
+    document.getElementById('categoryIcon').value = iconClass;
+    const previewBox = document.getElementById('iconPreviewBox');
+    previewBox.dataset.icon = iconClass;
+
+    const color = previewBox.dataset.color || '#22C55E';
+    const prefix = iconClass.startsWith('fab') ? '' : 'fas ';
+    previewBox.innerHTML = `<i class="${prefix}${iconClass}"></i>`;
+    previewBox.style.background = color + '22';
+    previewBox.style.color = color;
+
+    document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
+    // 通过 data-icon 匹配并高亮
+    document.querySelectorAll('.icon-item').forEach(item => {
+        if (item.dataset.icon === iconClass) item.classList.add('selected');
+    });
+}
+
+function selectColor(color) {
+    document.getElementById('categoryColor').value = color;
+    const previewBox = document.getElementById('iconPreviewBox');
+    previewBox.dataset.color = color;
+
+    previewBox.style.background = color + '22';
+    previewBox.style.color = color;
+
+    document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
+    // 通过 backgroundColor 匹配
+    document.querySelectorAll('.color-dot').forEach(dot => {
+        if (dot.style.backgroundColor === color || dot.dataset.color === color) dot.classList.add('active');
+    });
+
+    document.getElementById('colorCustom').value = color;
+}
+
+function updateIconPreview(icon, color) {
+    const previewBox = document.getElementById('iconPreviewBox');
+    previewBox.dataset.icon = icon || 'fa-folder';
+    previewBox.dataset.color = color || '#22C55E';
+    const prefix = (icon || 'fa-folder').startsWith('fab') ? '' : 'fas ';
+    previewBox.innerHTML = `<i class="${prefix}${icon || 'fa-folder'}"></i>`;
+    previewBox.style.background = (color || '#22C55E') + '22';
+    previewBox.style.color = color || '#22C55E';
+    document.getElementById('categoryIcon').value = icon || 'fa-folder';
+    document.getElementById('categoryColor').value = color || '#22C55E';
+}
+
 function openCategoryModal() {
     editingCategoryId = null;
     document.getElementById('categoryName').value = '';
-    document.getElementById('categoryIcon').value = 'fa-folder';
+    updateIconPreview('fa-folder', '#22C55E');
+    renderIconGrid('fa-folder');
+    renderColorOptions('#22C55E');
     document.getElementById('categoryModal').classList.add('active');
     document.getElementById('categoryModalTitle').textContent = '添加分类';
-    // 自动聚焦到输入框
     setTimeout(() => {
         document.getElementById('categoryName').focus();
     }, 100);
@@ -969,10 +1073,13 @@ function openEditCategoryModal(categoryId) {
 
     editingCategoryId = categoryId;
     document.getElementById('categoryName').value = category.name;
-    document.getElementById('categoryIcon').value = category.icon;
+    const icon = category.icon || 'fa-folder';
+    const color = category.color || '#22C55E';
+    updateIconPreview(icon, color);
+    renderIconGrid(icon);
+    renderColorOptions(color);
     document.getElementById('categoryModal').classList.add('active');
     document.getElementById('categoryModalTitle').textContent = '编辑分类';
-    // 自动聚焦到输入框
     setTimeout(() => {
         document.getElementById('categoryName').focus();
     }, 100);
@@ -986,6 +1093,7 @@ function closeCategoryModal() {
 function saveCategory() {
     const name = document.getElementById('categoryName').value.trim();
     const icon = document.getElementById('categoryIcon').value;
+    const color = document.getElementById('categoryColor').value;
 
     if (!name) {
         showToast('请输入分类名称', 'warning');
@@ -993,19 +1101,19 @@ function saveCategory() {
     }
 
     if (editingCategoryId) {
-        // 编辑模式
         const category = data.categories.find(c => c.id === editingCategoryId);
         if (category) {
             category.name = name;
             category.icon = icon;
+            category.color = color;
             showToast('分类已更新', 'success');
         }
     } else {
-        // 添加模式
         const newCategory = {
             id: 'cat_' + Date.now(),
             name,
             icon,
+            color,
             isDefault: false
         };
         data.categories.push(newCategory);

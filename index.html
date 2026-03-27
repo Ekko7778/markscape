@@ -314,7 +314,7 @@
         }
 
         /* ========== 悬浮添加按钮 ========== */
-        .fab {
+        .fab-btn {
             position: fixed;
             bottom: 28px;
             right: 28px;
@@ -334,16 +334,16 @@
             z-index: 90;
         }
 
-        .fab:hover {
+        .fab-btn:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
         }
 
-        .fab:active {
+        .fab-btn:active {
             transform: scale(0.95);
         }
 
-        .fab-label {
+        .fab-btn-label {
             position: absolute;
             right: calc(100% + 10px);
             background: var(--bg-secondary);
@@ -360,7 +360,7 @@
             transition: all 0.2s;
         }
 
-        .fab:hover .fab-label {
+        .fab-btn:hover .fab-btn-label {
             opacity: 1;
             transform: translateX(0);
         }
@@ -1119,6 +1119,138 @@
             text-align: center;
         }
 
+        /* ========== 图标选择器 ========== */
+        .icon-selector {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            background: var(--bg-primary);
+        }
+
+        .icon-preview {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .icon-preview-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.2s;
+        }
+
+        .icon-color-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .color-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .color-dot.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px currentColor;
+        }
+
+        .color-custom {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            padding: 0;
+            cursor: pointer;
+            background: transparent;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .color-custom::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-custom::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 5px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .icon-section-title {
+            grid-column: 1 / -1;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            padding: 8px 2px 3px;
+        }
+
+        .icon-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            overflow: hidden;
+        }
+
+        .icon-item i,
+        .icon-item svg {
+            font-size: 1rem;
+            width: 1em;
+            height: 1em;
+        }
+
+        .icon-item:hover {
+            border-color: var(--accent);
+            transform: scale(1.08);
+        }
+
+        .icon-item.selected {
+            border-color: var(--accent);
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent);
+        }
+
         .modal-footer {
             display: flex;
             gap: 12px;
@@ -1408,19 +1540,21 @@
                     <input type="text" id="categoryName" placeholder="例如：工作、学习、娱乐">
                 </div>
                 <div class="form-group">
-                    <label>图标</label>
-                    <select id="categoryIcon">
-                        <option value="fa-folder">📁 文件夹</option>
-                        <option value="fa-briefcase">💼 工作</option>
-                        <option value="fa-graduation-cap">🎓 学习</option>
-                        <option value="fa-gamepad">🎮 娱乐</option>
-                        <option value="fa-code">💻 开发</option>
-                        <option value="fa-palette">🎨 设计</option>
-                        <option value="fa-newspaper">📰 新闻</option>
-                        <option value="fa-shopping-cart">🛒 购物</option>
-                        <option value="fa-heart">❤️ 收藏</option>
-                        <option value="fa-star">⭐ 精选</option>
-                    </select>
+                    <label>图标和颜色</label>
+                    <div class="icon-selector">
+                        <div class="icon-preview">
+                            <div class="icon-preview-box" id="iconPreviewBox" data-icon="fa-folder" data-color="#22C55E">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                        </div>
+                        <div class="icon-color-row">
+                            <div class="color-options" id="colorOptions"></div>
+                            <input type="color" class="color-custom" id="colorCustom" value="#22C55E" title="自定义颜色">
+                        </div>
+                        <div class="icon-grid" id="iconGrid"></div>
+                        <input type="hidden" id="categoryIcon" value="fa-folder">
+                        <input type="hidden" id="categoryColor" value="#22C55E">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1502,9 +1636,9 @@
     </div>
 
     <!-- 悬浮添加按钮 -->
-    <button class="fab" id="addBookmarkBtn">
+    <button class="fab-btn" id="addBookmarkBtn">
         <i class="fas fa-plus"></i>
-        <span class="fab-label">添加书签</span>
+        <span class="fab-btn-label">添加书签</span>
     </button>
 
     <script src="app.js"></script>

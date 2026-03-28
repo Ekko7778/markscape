@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" width="128" height="128" alt="拾光 Markscape">
+  <a href="https://github.com/Ekko7778/markscape/blob/main/logo.png" target="_blank"><img src="logo.png" width="128" height="128" alt="拾光 Markscape"></a>
 </p>
 
 <h1 align="center">拾光 Markscape</h1>
@@ -35,12 +35,14 @@
 
 ## 预览
 
+> 点击图片查看大图
+
 ### 主界面
 
 <table>
   <tr>
-    <td align="center"><img src="screenshot-dark-main.png" width="400" alt="深色主题"><br><sub>深色主题</sub></td>
-    <td align="center"><img src="screenshot-light-main.png" width="400" alt="浅色主题"><br><sub>浅色主题</sub></td>
+    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshot-dark-main.png" target="_blank"><img src="screenshot-dark-main.png" width="400" alt="深色主题"></a><br><sub>深色主题</sub></td>
+    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshot-light-main.png" target="_blank"><img src="screenshot-light-main.png" width="400" alt="浅色主题"></a><br><sub>浅色主题</sub></td>
   </tr>
 </table>
 
@@ -48,8 +50,8 @@
 
 <table>
   <tr>
-    <td align="center"><img src="screenshot-dark-category.png" width="400" alt="深色主题"><br><sub>深色主题</sub></td>
-    <td align="center"><img src="screenshot-light-category.png" width="400" alt="浅色主题"><br><sub>浅色主题</sub></td>
+    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshot-dark-category.png" target="_blank"><img src="screenshot-dark-category.png" width="400" alt="深色主题"></a><br><sub>深色主题</sub></td>
+    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshot-light-category.png" target="_blank"><img src="screenshot-light-category.png" width="400" alt="浅色主题"></a><br><sub>浅色主题</sub></td>
   </tr>
 </table>
 

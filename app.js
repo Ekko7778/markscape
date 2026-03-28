@@ -971,7 +971,12 @@ const iconGroups = [
     { title: '生活 & 其他', icons: ['fa-gamepad', 'fa-music', 'fa-camera', 'fa-shopping-cart', 'fa-credit-card', 'fa-coffee', 'fa-palette'] },
 ];
 
-const presetColors = ['#22C55E', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444', '#06B6D4', '#64748B'];
+const presetColors = [
+    '#EF4444', '#F97316', '#F59E0B',
+    '#22C55E', '#06B6D4', '#3B82F6',
+    '#6366F1', '#8B5CF6', '#EC4899',
+    '#64748B'
+];
 
 function renderIconGrid(selectedIcon) {
     const grid = document.getElementById('iconGrid');
@@ -1009,10 +1014,72 @@ function renderColorOptions(selectedColor) {
         container.appendChild(dot);
     });
 
-    // 自定义颜色 input 事件
-    document.getElementById('colorCustom').oninput = (e) => {
-        selectColor(e.target.value);
+    // 初始化色条
+    initColorBar(selectedColor);
+}
+
+function initColorBar(selectedColor) {
+    const bar = document.getElementById('colorBar');
+    const thumb = document.getElementById('colorBarThumb');
+    if (!bar || !thumb) return;
+
+    // 根据 selectedColor 计算色相位置
+    const hue = colorToHue(selectedColor);
+    const percent = (hue / 360) * 100;
+    thumb.style.left = percent + '%';
+    thumb.style.backgroundColor = selectedColor;
+
+    // 点击/拖拽色条选色
+    let dragging = false;
+
+    function pickColor(e) {
+        const rect = bar.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const ratio = x / rect.width;
+        const h = Math.round(ratio * 360);
+        const color = hslToHex(h, 75, 55);
+        thumb.style.left = (ratio * 100) + '%';
+        thumb.style.backgroundColor = color;
+        selectColor(color);
+    }
+
+    bar.addEventListener('mousedown', (e) => {
+        dragging = true;
+        pickColor(e);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (dragging) pickColor(e);
+    });
+
+    document.addEventListener('mouseup', () => {
+        dragging = false;
+    });
+}
+
+function colorToHue(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    if (max === min) return 0;
+    let h;
+    const d = max - min;
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (max === g) h = ((b - r) / d + 2);
+    else h = ((r - g) / d + 4);
+    return h * 60;
+}
+
+function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
     };
+    return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 function selectIcon(iconClass) {
@@ -1047,7 +1114,13 @@ function selectColor(color) {
         if (dot.style.backgroundColor === color || dot.dataset.color === color) dot.classList.add('active');
     });
 
-    document.getElementById('colorCustom').value = color;
+    // 同步色条 thumb 位置
+    const thumb = document.getElementById('colorBarThumb');
+    if (thumb) {
+        const hue = colorToHue(color);
+        thumb.style.left = (hue / 360) * 100 + '%';
+        thumb.style.backgroundColor = color;
+    }
 }
 
 function updateIconPreview(icon, color) {

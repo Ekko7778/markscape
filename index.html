@@ -1145,60 +1145,74 @@
         .icon-color-row {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 10px;
             flex-wrap: wrap;
-            padding: 8px;
-            background: var(--bg-primary);
+            padding: 10px;
+            background: var(--bg-secondary, rgba(0,0,0,0.15));
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
         .color-options {
             display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+            justify-content: space-between;
             flex: 1;
         }
 
         .color-dot {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
-            border: 2px solid transparent;
+            border: 2px solid rgba(255,255,255,0.15);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
             position: relative;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
         .color-dot:hover {
-            transform: scale(1.15);
+            transform: scale(1.2);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         }
 
         .color-dot.active {
-            border-color: var(--text-primary);
-            box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px currentColor;
+            border-color: #fff;
+            box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px currentColor, 0 3px 10px rgba(0,0,0,0.3);
         }
 
-        .color-custom {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border);
-            border-radius: 50%;
-            padding: 0;
+        .color-bar-wrapper {
+            position: relative;
+            height: 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            background: transparent;
-            -webkit-appearance: none;
-            appearance: none;
         }
 
-        .color-custom::-webkit-color-swatch-wrapper {
-            padding: 0;
+        .color-bar {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(to right,
+                #EF4444, #F97316, #F59E0B, #EAB308,
+                #22C55E, #14B8A6, #06B6D4, #3B82F6,
+                #6366F1, #8B5CF6, #A855F7, #EC4899,
+                #EF4444
+            );
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
         }
 
-        .color-custom::-webkit-color-swatch {
-            border: none;
+        .color-bar-thumb {
+            position: absolute;
+            top: 50%;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: left 0.1s ease;
         }
 
         .icon-grid {
@@ -1553,7 +1567,10 @@
                         </div>
                         <div class="icon-color-row">
                             <div class="color-options" id="colorOptions"></div>
-                            <input type="color" class="color-custom" id="colorCustom" value="#22C55E" title="自定义颜色">
+                        </div>
+                        <div class="color-bar-wrapper">
+                            <div class="color-bar" id="colorBar"></div>
+                            <div class="color-bar-thumb" id="colorBarThumb"></div>
                         </div>
                         <div class="icon-grid" id="iconGrid"></div>
                         <input type="hidden" id="categoryIcon" value="fa-folder">

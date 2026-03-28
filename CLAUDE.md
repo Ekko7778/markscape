@@ -1,5 +1,9 @@
 # 书签管理器 - 项目规则
 
+## Git 规则
+
+**禁止在 commit message 中添加 Co-Authored-By 行。** 提交信息只保留 emoji + type(scope): 描述的格式，不要附带任何署名。
+
 ## 开发流程
 
 ### UI 修改必须用 Chrome DevTools 测试

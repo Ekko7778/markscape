@@ -1,11 +1,17 @@
 <p align="center">
-  <a href="https://github.com/Ekko7778/markscape/blob/main/logo.png" target="_blank"><img src="logo.png" width="128" height="128" alt="拾光 Markscape"></a>
+  <a href="https://github.com/Ekko7778/markscape" target="_blank"><img src="logo.png" width="128" height="128" alt="拾光 Markscape"></a>
 </p>
 
 <h1 align="center">拾光 Markscape</h1>
 
 <p align="center">
   极简书签管理器 — 收集你的光
+  <br />
+  <a href="https://github.com/Ekko7778/markscape" target="_blank"><strong>📦 GitHub 仓库</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="#功能特性" target="_blank"><strong>✨ 功能特性</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="#快速开始" target="_blank"><strong>🚀 快速开始</strong></a>
+  <br />
+  <br />
 </p>
 
 <p align="center">
@@ -16,13 +22,15 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
 </p>
 
+<br>
+
 <p align="center">
-  <a href="#功能特性">功能特性</a> · <a href="#预览">预览</a> · <a href="#快速开始">快速开始</a> · <a href="#技术栈">技术栈</a>
+  <a href="https://github.com/Ekko7778/markscape/blob/main/screenshots/screenshot-dark-main.png" target="_blank">
+    <img src="screenshots/screenshot-dark-main.png" alt="主界面预览" style="border-radius: 15px; width: 80%; max-width: 800px;">
+  </a>
 </p>
 
----
-
-## 功能特性
+## ✨ 功能特性
 
 - **分类管理** — 自定义分类，支持图标和颜色自定义
 - **书签收藏** — 添加、编辑、删除书签，支持拖拽排序
@@ -33,29 +41,7 @@
 - **响应式布局** — 适配桌面和移动端
 - **Liquid Glass 风格** — 磨砂玻璃质感 UI
 
-## 预览
-
-> 点击图片查看大图
-
-### 主界面
-
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshots/screenshot-dark-main.png" target="_blank"><img src="screenshots/screenshot-dark-main.png" width="400" alt="深色主题"></a><br><sub>深色主题</sub></td>
-    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshots/screenshot-light-main.png" target="_blank"><img src="screenshots/screenshot-light-main.png" width="400" alt="浅色主题"></a><br><sub>浅色主题</sub></td>
-  </tr>
-</table>
-
-### 分类编辑器 — 图标选择器 & 渐变取色条
-
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshots/screenshot-dark-category.png" target="_blank"><img src="screenshots/screenshot-dark-category.png" width="400" alt="深色主题"></a><br><sub>深色主题</sub></td>
-    <td align="center"><a href="https://github.com/Ekko7778/markscape/blob/main/screenshots/screenshot-light-category.png" target="_blank"><img src="screenshots/screenshot-light-category.png" width="400" alt="浅色主题"></a><br><sub>浅色主题</sub></td>
-  </tr>
-</table>
-
-## 快速开始
+## 🚀 快速开始
 
 无需安装任何依赖，直接打开即可使用：
 
@@ -66,7 +52,7 @@ open index.html
 
 或直接在浏览器中打开 `index.html` 文件。
 
-## 技术栈
+## 🛠 技术栈
 
 | 技术 | 用途 |
 |:-----|:-----|
@@ -76,7 +62,7 @@ open index.html
 | Font Awesome 6 | 图标库 |
 | localStorage | 数据持久化 |
 
-## 项目结构
+## 📁 项目结构
 
 ```
 markscape/
@@ -90,6 +76,20 @@ markscape/
 │   └── screenshot-light-category.png
 └── README.md                     # 说明文档
 ```
+
+## 🖼️ 截图
+
+<p align="center">
+  <img src="screenshots/screenshot-dark-main.png" alt="深色主题主界面" width="400" style="border-radius: 15px;">
+  &nbsp;
+  <img src="screenshots/screenshot-light-main.png" alt="浅色主题主界面" width="400" style="border-radius: 15px;">
+</p>
+
+<p align="center">
+  <img src="screenshots/screenshot-dark-category.png" alt="深色主题分类编辑器" width="400" style="border-radius: 15px;">
+  &nbsp;
+  <img src="screenshots/screenshot-light-category.png" alt="浅色主题分类编辑器" width="400" style="border-radius: 15px;">
+</p>
 
 ## License
 

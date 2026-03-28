@@ -770,6 +770,12 @@ function clearCategoryInput() {
     input.focus();
 }
 
+function clearInput(inputId) {
+    const input = document.getElementById(inputId);
+    input.value = '';
+    input.focus();
+}
+
 function openAddModal() {
     editingBookmarkId = null;
     document.getElementById('modalTitle').textContent = '添加书签';

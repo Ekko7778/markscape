@@ -352,6 +352,7 @@ function bindDragEvents() {
         card.addEventListener('dragstart', handleDragStart);
         card.addEventListener('dragend', handleDragEnd);
         card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragenter', handleDragEnter);
         card.addEventListener('dragleave', handleDragLeave);
         card.addEventListener('drop', handleDrop);
     });
@@ -375,13 +376,20 @@ function handleDragEnd() {
 function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
     if (this !== draggedElement) {
         this.classList.add('drag-over');
     }
 }
 
-function handleDragLeave() {
-    this.classList.remove('drag-over');
+function handleDragLeave(e) {
+    // 只在真正离开卡片时移除样式，忽略子元素触发
+    if (!this.contains(e.relatedTarget)) {
+        this.classList.remove('drag-over');
+    }
 }
 
 function handleDrop(e) {

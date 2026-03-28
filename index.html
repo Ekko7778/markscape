@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>书签管理器</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>拾光 Markscape</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         // 在页面渲染前应用主题，防止闪屏
@@ -68,16 +68,19 @@
         }
 
         /* ========== 页面基础 ========== */
-        html {
-            overflow-y: auto;
-            scrollbar-gutter: stable;
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
-            min-height: 100vh;
             color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
         }
 
         /* 自定义滚动条 - 不滚动时隐藏 */
@@ -123,10 +126,10 @@
 
         /* ========== 导航栏 ========== */
         .header {
-            position: sticky;
-            top: 0;
+            position: relative;
             z-index: 100;
             padding: 8px 8px 0 8px;
+            flex-shrink: 0;
         }
 
         /* 顶部栏 */
@@ -142,21 +145,31 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
+        }
+
+        .logo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .logo h3 {
             font-size: 1.15rem;
             font-weight: 800;
             color: var(--text-primary);
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             margin: 0;
         }
 
-        .logo i {
-            color: var(--accent);
-            font-size: 1.15rem;
+        .logo span {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .search-box {
@@ -368,7 +381,9 @@
         /* ========== 整体布局 ========== */
         .layout {
             display: flex;
-            height: calc(100vh - 61px);
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
 
         /* ========== 侧边栏 ========== */
@@ -380,9 +395,6 @@
             flex-direction: column;
             gap: 2px;
             overflow-y: auto;
-            position: sticky;
-            top: 65px;
-            height: calc(100vh - 65px);
             border-radius: 12px;
             margin-left: 8px;
         }
@@ -1435,8 +1447,9 @@
     <header class="header">
         <div class="header-top liquid-glass">
             <div class="logo">
-                <i class="fas fa-bookmark"></i>
-                <h3>书签管理器</h3>
+                <img src="logo.png" alt="拾光">
+                <h3>拾光</h3>
+                <span>Markscape</span>
             </div>
             <div class="search-box">
                 <i class="fas fa-search"></i>

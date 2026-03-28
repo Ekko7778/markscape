@@ -4,8 +4,8 @@
 # Playwright MCP
 .playwright-mcp/
 
-# 截图
-*.png
+# 截图（保留 logo 和 README 截图）
+# *.png
 *.jpg
 *.jpeg
 *.gif

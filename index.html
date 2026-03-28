@@ -568,6 +568,23 @@
             background: rgba(255, 255, 255, 0.2) !important;
         }
 
+        /* 分类拖拽样式 */
+        .sidebar-icon[draggable="true"] {
+            cursor: grab;
+        }
+
+        .sidebar-icon[draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        .sidebar-item.cat-dragging {
+            opacity: 0.4;
+        }
+
+        .sidebar-item.cat-drag-over {
+            box-shadow: inset 0 2px 0 var(--accent);
+        }
+
         .sidebar-bottom {
             display: flex;
             align-items: center;

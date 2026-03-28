@@ -180,9 +180,10 @@ function renderCategories() {
 
         const item = document.createElement('button');
         item.className = `sidebar-item ${currentCategory === cat.id ? 'active' : ''}`;
+        item.dataset.id = cat.id;
         const colorStyle = cat.color ? `background:${cat.color}22;color:${cat.color}` : '';
         item.innerHTML = `
-            <span class="sidebar-icon"${cat.color ? ` style="${colorStyle}"` : ''}><i class="fas ${cat.icon}"></i></span>
+            <span class="sidebar-icon"${!cat.isDefault ? ' draggable="true"' : ''}${cat.color ? ` style="${colorStyle}"` : ''}><i class="fas ${cat.icon}"></i></span>
             <span class="sidebar-item-name">${cat.name}</span>
             <span class="sidebar-item-count">${count}</span>
         `;
@@ -202,6 +203,7 @@ function renderCategories() {
     sidebar.appendChild(bottom);
 
     updateCategorySelect();
+    bindCategoryDragEvents();
 }
 
 function selectCategory(categoryId) {
@@ -404,6 +406,84 @@ function handleDrop(e) {
 
     saveData();
     renderBookmarks();
+}
+
+// ========== 分类拖拽排序 ==========
+let draggedCategoryItem = null;
+
+function bindCategoryDragEvents() {
+    const icons = document.querySelectorAll('.sidebar-icon[draggable="true"]');
+    icons.forEach(icon => {
+        icon.addEventListener('dragstart', handleCategoryDragStart);
+        icon.addEventListener('dragend', handleCategoryDragEnd);
+    });
+
+    // drop 目标仍然是整个 sidebar-item
+    const items = document.querySelectorAll('.sidebar-item[data-id]');
+    items.forEach(item => {
+        item.addEventListener('dragover', handleCategoryDragOver);
+        item.addEventListener('dragenter', handleCategoryDragEnter);
+        item.addEventListener('dragleave', handleCategoryDragLeave);
+        item.addEventListener('drop', handleCategoryDrop);
+    });
+}
+
+function handleCategoryDragStart(e) {
+    const sidebarItem = this.closest('.sidebar-item');
+    draggedCategoryItem = sidebarItem;
+    sidebarItem.classList.add('cat-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sidebarItem.dataset.id);
+}
+
+function handleCategoryDragEnd() {
+    const sidebarItem = this.closest('.sidebar-item');
+    sidebarItem.classList.remove('cat-dragging');
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('cat-drag-over');
+    });
+    draggedCategoryItem = null;
+}
+
+function handleCategoryDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleCategoryDragEnter(e) {
+    e.preventDefault();
+    const target = this.closest('.sidebar-item') || this;
+    if (target !== draggedCategoryItem && target.dataset.id !== 'all') {
+        target.classList.add('cat-drag-over');
+    }
+}
+
+function handleCategoryDragLeave(e) {
+    if (!this.contains(e.relatedTarget)) {
+        this.classList.remove('cat-drag-over');
+    }
+}
+
+function handleCategoryDrop(e) {
+    e.preventDefault();
+    this.classList.remove('cat-drag-over');
+
+    const targetItem = this.closest('.sidebar-item') || this;
+    if (targetItem === draggedCategoryItem || targetItem.dataset.id === 'all') return;
+
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const targetId = targetItem.dataset.id;
+
+    const draggedIndex = data.categories.findIndex(c => c.id === draggedId);
+    const targetIndex = data.categories.findIndex(c => c.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const [removed] = data.categories.splice(draggedIndex, 1);
+    data.categories.splice(targetIndex, 0, removed);
+
+    saveData();
+    renderCategories();
 }
 
 // ========== 图标缓存系统 ==========

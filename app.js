@@ -6,7 +6,7 @@
 // ========== 数据结构 ==========
 let data = {
     categories: [
-        { id: 'all', name: '全部', icon: 'fa-layer-group', isDefault: true },
+        { id: 'all', name: '全部', icon: 'fa-layer-group', isDefault: true, color: '#6366f1' },
         { id: 'work', name: '工作', icon: 'fa-briefcase' },
         { id: 'study', name: '学习', icon: 'fa-graduation-cap' },
         { id: 'dev', name: '开发', icon: 'fa-code' },

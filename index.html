@@ -519,7 +519,8 @@
             width: 26px;
             height: 26px;
             border-radius: 6px;
-            background: var(--bg-primary);
+            background: #6366f122;
+            color: #6366f1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -533,7 +534,20 @@
         }
 
         .sidebar-item.active .sidebar-icon {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* 深色模式下分类图标方块背景改为白色 */
+        [data-theme="dark"] .sidebar-item .sidebar-icon {
+            background: #ffffff !important;
+        }
+
+        [data-theme="dark"] .sidebar-item:hover .sidebar-icon {
+            background: #ffffff !important;
+        }
+
+        [data-theme="dark"] .sidebar-item.active .sidebar-icon {
+            background: rgba(255, 255, 255, 0.2) !important;
         }
 
         .sidebar-item-name {
@@ -551,7 +565,7 @@
         }
 
         .sidebar-item.active .sidebar-item-count {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2) !important;
         }
 
         .sidebar-bottom {
@@ -1341,8 +1355,7 @@
 
         .icon-item.selected {
             border-color: var(--accent);
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--accent);
+            background: #ffffff;
         }
 
         .modal-footer {

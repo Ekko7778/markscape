@@ -317,13 +317,70 @@
             justify-content: center;
             cursor: pointer;
             color: var(--text-secondary);
-            transition: all 0.15s;
+            transition: all 0.3s ease;
             flex-shrink: 0;
+            overflow: hidden;
         }
 
         .theme-toggle:hover {
             background: var(--bg-primary);
             color: var(--accent);
+        }
+
+        .theme-icon {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        color 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(30deg);
+        }
+
+        .theme-rays line {
+            transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: 12px 12px;
+        }
+
+        .theme-moon {
+            transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        .theme-sun {
+            transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        /* 亮色模式：太阳 */
+        [data-theme="light"] .theme-rays line {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        [data-theme="light"] .theme-sun {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        [data-theme="light"] .theme-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(-30deg);
+        }
+
+        /* 暗色模式：月亮 */
+        [data-theme="dark"] .theme-rays line {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        [data-theme="dark"] .theme-sun {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        [data-theme="dark"] .theme-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
         }
 
         /* ========== 悬浮添加按钮 ========== */
@@ -1453,7 +1510,22 @@
                 <button class="clear-btn" id="clearSearchBtn" title="清空搜索">×</button>
             </div>
             <button class="btn btn-icon theme-toggle" id="themeToggle" title="切换主题">
-                <i class="fas fa-moon"></i>
+                <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <g class="theme-sun">
+                        <circle class="theme-circle" cx="12" cy="12" r="5"/>
+                        <g class="theme-rays">
+                            <line x1="12" y1="1" x2="12" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="23"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                            <line x1="1" y1="12" x2="3" y2="12"/>
+                            <line x1="21" y1="12" x2="23" y2="12"/>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                        </g>
+                    </g>
+                    <path class="theme-moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
             </button>
         </div>
     </header>

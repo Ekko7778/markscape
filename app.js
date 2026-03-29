@@ -1215,9 +1215,10 @@ function updateIconPreview(icon, color) {
 function openCategoryModal() {
     editingCategoryId = null;
     document.getElementById('categoryName').value = '';
-    updateIconPreview('fa-folder', '#22C55E');
+    const lastColor = localStorage.getItem('lastCategoryColor') || '#22C55E';
+    updateIconPreview('fa-folder', lastColor);
     renderIconGrid('fa-folder');
-    renderColorOptions('#22C55E');
+    renderColorOptions(lastColor);
     document.getElementById('categoryModal').classList.add('active');
     document.getElementById('categoryModalTitle').textContent = '添加分类';
     setTimeout(() => {
@@ -1279,6 +1280,7 @@ function saveCategory() {
     }
 
     saveData();
+    localStorage.setItem('lastCategoryColor', color);
     closeCategoryModal();
     renderCategories();
 }
